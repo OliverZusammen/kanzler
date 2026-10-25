@@ -7,6 +7,20 @@ $cfg = kr_config();
 
 if (isset($_GET['ping'])) { echo json_encode(['ok'=>true,'service'=>'kanzlerrennen','news'=>true]); exit; }
 if (isset($_GET['news'])) { echo json_encode(kr_news($cfg), JSON_UNESCAPED_UNICODE); exit; }
+if (isset($_GET['diag'])) {
+  // Diagnose ohne Geheimnisse: Woher kommt die Konfiguration, erreicht PHP die Datenbank?
+  $env = kr_env(); $envFile = dirname(__DIR__).'/.env';
+  $out = [
+    'env_datei' => is_file($envFile) ? 'vorhanden' : 'fehlt',
+    'env_schluessel' => array_keys($env),
+    'config_php' => is_file(__DIR__.'/../src/config.php') ? 'vorhanden' : 'fehlt',
+    'quelle' => (!empty($env['DB_DATABASE']) && !empty($env['DB_USERNAME'])) ? '.env' : (is_file(__DIR__.'/../src/config.php') ? 'src/config.php' : 'Notbetrieb SQLite'),
+    'treiber' => $cfg['db_driver'] ?? '?', 'host' => $cfg['db_host'] ?? '-', 'datenbank' => $cfg['db_name'] ?? ($cfg['sqlite_path'] ?? '-'), 'benutzer' => $cfg['db_user'] ?? '-',
+    'passwort_gesetzt' => !empty($cfg['db_pass']), 'pdo_treiber' => PDO::getAvailableDrivers(),
+  ];
+  try { kr_db($cfg); $out['verbindung'] = 'ok'; } catch (Exception $e) { $out['verbindung'] = 'FEHLER: '.$e->getMessage(); }
+  echo json_encode($out, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT); exit;
+}
 
 $fail = function($msg, $code=400){ http_response_code($code); echo json_encode(['ok'=>false,'error'=>$msg]); exit; };
 try { $db = kr_db($cfg); }
