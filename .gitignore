@@ -1,0 +1,8 @@
+src/config.php
+config.php
+.env
+data/
+*.sqlite
+*.log
+.DS_Store
+Thumbs.db

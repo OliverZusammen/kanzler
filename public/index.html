@@ -1,0 +1,1615 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kanzlerrennen</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..900&family=Archivo+Narrow:wght@400;500;700&display=swap">
+<style>
+/* Layout: ein durchlaufendes Formular wie ein Stimmzettel – schwarze Trennlinien, nummerierte Zeilen,
+   Farbe nur dort, wo sie Parteien bedeutet. Länder als echte Karte. */
+:root{
+  --paper:#ffffff; --ink:#111111; --ink-2:#4a4a4a; --rule:#111111; --hair:#c9c9c9; --tint:#f0f0f0;
+  --good:#1e7b43; --warn:#9a5b00; --bad:#b0241a;
+  --head:"Archivo",system-ui,sans-serif; --narrow:"Archivo Narrow","Arial Narrow",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#141414; --ink:#f2f2f2; --ink-2:#b4b4b4; --rule:#f2f2f2; --hair:#3a3a3a; --tint:#1f1f1f;
+  --good:#5fc687; --warn:#e9a84a; --bad:#f0695e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#141414; --ink:#f2f2f2; --ink-2:#b4b4b4; --rule:#f2f2f2; --hair:#3a3a3a; --tint:#1f1f1f;
+  --good:#5fc687; --warn:#e9a84a; --bad:#f0695e; color-scheme:dark}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--head);font-size:15px;line-height:1.4}
+.sheet{max-width:820px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.num{font-variant-numeric:tabular-nums}
+h1,h2,h3{margin:0;text-wrap:balance}
+.mast{border-top:3px solid var(--rule);border-bottom:1px solid var(--rule);padding:10px 0 12px}
+.mast .k{font-family:var(--narrow);font-weight:500;font-size:.85rem;letter-spacing:.04em;text-transform:uppercase;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--ink-2)}
+h1{font-family:var(--head);font-variation-settings:"wdth" 112;font-weight:900;font-size:clamp(2.1rem,7vw,3.4rem);line-height:.95;letter-spacing:-.02em;margin-top:8px}
+.lead{max-width:60ch;color:var(--ink-2);margin:12px 0 0}
+section{border-bottom:1px solid var(--rule);padding:18px 0 22px}
+section h2{font-family:var(--head);font-weight:800;font-size:1.05rem;text-transform:uppercase;letter-spacing:.03em;margin-bottom:12px;display:flex;align-items:baseline;gap:10px}
+section h2 .n{font-family:var(--narrow);font-weight:400;color:var(--ink-2);min-width:1.6em}
+.hint{color:var(--ink-2);font-size:.9rem;max-width:62ch;margin:0 0 12px}
+.ticker{display:flex;flex-wrap:wrap;gap:0 28px;row-gap:6px;font-family:var(--narrow);font-size:1rem;padding:10px 0;border-bottom:1px solid var(--hair)}
+.ticker b{font-weight:700}
+.ticker span{color:var(--ink-2)}
+/* Stimmzettel-Zeilen */
+.ballot{display:grid}
+.brow{display:grid;grid-template-columns:2em auto 1fr auto;gap:0 12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--hair);cursor:pointer;text-align:left;background:none;border-left:0;border-right:0;border-top:0;font:inherit;color:inherit}
+.brow:hover .name{text-decoration:underline}
+.brow:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+.brow .i{font-family:var(--narrow);font-weight:700;font-size:1.2rem}
+.brow .name{font-weight:700;font-size:1.05rem}
+.brow .name small{display:block;font-weight:400;color:var(--ink-2);font-size:.85rem;margin-top:2px}
+.brow .pf svg,.brow .pf img{display:block;width:56px;height:70px}
+.brow .o{width:28px;height:28px;border:2px solid var(--ink);border-radius:50%;position:relative}
+.brow .o i{position:absolute;inset:4px;border-radius:50%;background:var(--c)}
+/* Konto */
+.acct{display:flex;gap:10px;align-items:center;justify-content:flex-end;font-family:var(--narrow);font-size:.9rem;color:var(--ink-2);padding:8px 0 0}
+.acct span b{color:var(--ink)}
+.saved{font-family:var(--narrow);font-size:.8rem;color:var(--ink-2)}
+/* Einstieg */
+.steps{display:flex;gap:18px;font-family:var(--narrow);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.85rem;color:var(--ink-2)}
+.steps .on{color:var(--ink);border-bottom:2px solid var(--ink)}
+.form{display:grid;gap:14px;max-width:520px}
+.form label{display:grid;gap:5px;font-family:var(--narrow);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:.8rem;color:var(--ink-2)}
+.form input[type=text],.form input[type=number],.form select{font:inherit;font-family:var(--head);font-size:1rem;color:var(--ink);background:var(--paper);border:1.5px solid var(--ink);border-radius:0;padding:9px 10px;text-transform:none;letter-spacing:0}
+.form input[type=color]{width:64px;height:36px;padding:2px;border:1.5px solid var(--ink);background:var(--paper);border-radius:0}
+.form input[type=file]{font-family:var(--head);text-transform:none;letter-spacing:0;font-size:.9rem}
+.form input[type=range]{width:100%;accent-color:var(--ink)}
+.form input:focus-visible,.form select:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.form .scale{display:flex;justify-content:space-between;font-weight:400;text-transform:none;letter-spacing:0;font-size:.8rem}
+.fotoprev img,.fotoprev svg{display:block;width:96px;height:120px;object-fit:cover;filter:grayscale(1) contrast(1.08)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.brow.neu .o{border-style:dashed}
+.brow.neu .pf{width:56px;height:70px;border:1.5px dashed var(--ink);display:grid;place-items:center;font-family:var(--narrow);font-weight:700;font-size:1.6rem}
+/* Unterseiten */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);display:flex;gap:0;overflow-x:auto;border-bottom:2px solid var(--rule);margin-top:-1px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs a{font-family:var(--narrow);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.85rem;color:var(--ink-2);text-decoration:none;padding:12px 14px 10px;white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tabs a.on{color:var(--ink);border-bottom-color:var(--ink)}
+.tabs a:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+.badge{display:inline-block;min-width:1.4em;padding:0 5px;background:var(--bad);color:#fff;font-size:.75rem;text-align:center;margin-left:4px;vertical-align:1px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+.cockpit{display:grid;grid-template-columns:1fr 1fr;gap:0 32px}
+.cockpit .col{min-width:0}
+@media (max-width:720px){.cockpit{grid-template-columns:1fr}}
+.cockpit section h2,.view section h2{font-size:1rem}
+/* Nachrichten */
+.agenda{display:grid;gap:4px;margin-bottom:12px}
+.agenda .ar{display:grid;grid-template-columns:minmax(0,11em) 1fr 3em;gap:10px;align-items:center;font-family:var(--narrow);font-size:.95rem}
+.agenda .ar .bar{height:8px;background:var(--tint);position:relative}
+.agenda .ar .bar i{position:absolute;inset:0 auto 0 0;background:var(--ink)}
+.agenda .ar b{text-align:right}
+.news{display:grid}
+.news a{display:grid;grid-template-columns:1fr auto;gap:10px;padding:7px 0;border-bottom:1px solid var(--hair);color:var(--ink);text-decoration:none;font-size:.95rem;line-height:1.3}
+.news a:hover{text-decoration:underline}
+.news a:last-child{border-bottom:0}
+.news .th{font-family:var(--narrow);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2);white-space:nowrap;padding-top:3px}
+.news .hot{color:var(--bad)}
+/* Legislatur */
+.vpartners{display:grid;gap:8px}
+.vp{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--hair)}
+.vp img,.vp svg{width:48px;height:60px;object-fit:cover;filter:grayscale(1) contrast(1.08);display:block}
+.vp .n{font-weight:800}.vp .s{font-family:var(--narrow);color:var(--ink-2);font-size:.9rem}
+.vp .m{font-family:var(--narrow);font-weight:700;text-align:right}
+.ress{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.rs{border:1.5px solid var(--ink);padding:8px 10px;display:grid;gap:3px;cursor:pointer;font:inherit;color:inherit;background:var(--paper);border-radius:0;text-align:left}
+.rs .t{font-weight:700;display:flex;justify-content:space-between;gap:8px}
+.rs small{color:var(--ink-2);font-family:var(--narrow)}
+.rs.mine{background:var(--ink);color:var(--paper)}.rs.mine small{color:var(--paper);opacity:.75}
+.rs.fixed{opacity:.6;cursor:default}
+.rs:disabled{cursor:not-allowed;opacity:.4}
+.govbars{display:grid;gap:6px;margin-bottom:10px}
+.gb{display:grid;grid-template-columns:minmax(0,9em) 1fr 3.5em;gap:10px;align-items:center;font-family:var(--narrow)}
+.gb .bar{height:10px;background:var(--tint);position:relative}.gb .bar i{position:absolute;inset:0 auto 0 0;background:var(--ink)}
+.gb .bar.neg i{background:var(--bad)}
+.gb b{text-align:right}
+.law small{display:block;color:var(--ink-2);font-weight:400;margin-top:2px}
+.sm.law{white-space:normal}
+/* Stellungnahmen */
+.stmt .q a{color:var(--ink)}
+.reso{padding:10px 0 4px;border-bottom:1px solid var(--hair);margin-bottom:10px;display:grid;gap:6px}
+.resogrid{display:grid;gap:4px}
+.rs2{display:grid;grid-template-columns:minmax(0,8em) 1fr 3em;gap:10px;align-items:center;font-family:var(--narrow);font-size:.95rem}
+.rs2 .bar{height:8px;background:var(--tint);position:relative}.rs2 .bar i{position:absolute;inset:0 auto 0 0;background:var(--good)}.rs2 .bar i.neg{background:var(--bad)}
+.rs2 b{text-align:right}.rs2 b.neg{color:var(--bad)}
+.profil{font-family:var(--narrow);font-size:.9rem;color:var(--ink-2);margin:-6px 0 10px}
+.profil .label{font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:.75rem;margin-right:6px}
+/* Kandidaten */
+img.foto{display:block;object-fit:cover;filter:grayscale(1) contrast(1.08);background:var(--tint)}
+.kand{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+.kand svg,.kand img{display:block;width:96px;height:120px}
+.kand .kn{font-weight:800;font-size:1.2rem;line-height:1.1}
+.kand .kr{font-family:var(--narrow);color:var(--ink-2);margin:2px 0 8px}
+.kand .zf{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-family:var(--narrow)}
+.kand .zf .bar{height:10px;background:var(--tint);position:relative}
+.kand .zf .bar i{position:absolute;inset:0 auto 0 0;background:var(--ink)}
+.kand .zf b{font-weight:700;font-size:1.05rem}
+.kand .zq{font-size:.9rem;color:var(--ink-2);margin-top:4px}
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;margin-top:14px}
+.gallery figure{margin:0;display:grid;gap:4px}
+.gallery svg,.gallery img{display:block;width:100%;height:auto}
+.gallery figcaption{font-family:var(--narrow);font-size:.85rem;line-height:1.2}
+.gallery figcaption span{color:var(--ink-2);display:block}
+.stamp{display:inline-block;border-left:3px solid var(--bad);color:var(--bad);font-family:var(--narrow);font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;margin:8px 0}
+/* Umfrage */
+.poll{display:grid;gap:0}
+.prow{display:grid;grid-template-columns:minmax(0,10em) 1fr 3.6em;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--hair)}
+.prow:last-child{border-bottom:0}
+.prow .bar{height:14px;background:var(--tint);position:relative}
+.prow .bar i{position:absolute;inset:0 auto 0 0}
+.prow .bar b{position:absolute;top:-4px;bottom:-4px;width:1.5px;background:var(--ink)}
+.prow .v{text-align:right;font-family:var(--narrow);font-weight:700;font-size:1.05rem}
+.prow.me .nm{font-weight:800}
+.prow.sonst{color:var(--ink-2)}
+/* Planung */
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.opt{font:inherit;color:inherit;background:var(--paper);border:1.5px solid var(--ink);border-radius:0;padding:10px 12px;text-align:left;cursor:pointer;display:grid;gap:3px}
+.opt .t{display:flex;justify-content:space-between;gap:8px;font-weight:700}
+.opt .t .c{font-family:var(--narrow);font-weight:500;color:var(--ink-2)}
+.opt small{color:var(--ink-2);line-height:1.3}
+.opt:hover{background:var(--tint)}
+.opt.sel{background:var(--ink);color:var(--paper)}
+.opt.sel small,.opt.sel .c{color:var(--paper);opacity:.75}
+.opt:disabled{opacity:.35;cursor:not-allowed;background:var(--paper)}
+.opt:focus-visible,.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.btn{font:inherit;font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:.95rem;border:2px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:0;padding:12px 18px;cursor:pointer}
+.btn.ghost{background:var(--paper);color:var(--ink)}
+.btn:hover{opacity:.85}
+.plan{font-family:var(--narrow);font-size:1rem;padding:10px 0;border-top:1px solid var(--hair);margin-top:12px;color:var(--ink-2)}
+.plan b{color:var(--ink);font-weight:700}
+.sub{font-family:var(--narrow);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.8rem;color:var(--ink-2);margin:14px 0 6px}
+/* Karte */
+.karte{max-width:520px}
+.karte svg{display:block;width:100%;height:auto}
+.karte path{stroke:var(--paper);stroke-width:1.6;cursor:pointer;transition:opacity .15s}
+.karte path:hover{opacity:.8}
+.karte path.sel{stroke:var(--ink);stroke-width:3}
+.karte path:focus-visible{outline:none;stroke:var(--ink);stroke-width:3}
+.karte text{font-family:var(--narrow);font-weight:700;font-size:15px;fill:#fff;pointer-events:none;paint-order:stroke;stroke:rgba(0,0,0,.45);stroke-width:3px}
+.karte .pct{font-size:12px;font-weight:500}
+.mlegende{display:flex;flex-wrap:wrap;gap:6px 14px;font-family:var(--narrow);font-size:.9rem;margin-top:8px}
+.mlegende span i{display:inline-block;width:11px;height:11px;margin-right:5px;vertical-align:-1px}
+/* Koalitionsbild im Wahlkampf */
+.hr{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-family:var(--narrow);padding:8px 0;border-bottom:1px solid var(--hair)}
+.hr b{font-size:1.05rem}
+/* Gespräche */
+.talks{display:grid}
+.talk{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;padding:12px 0;border-bottom:1px solid var(--hair);align-items:start}
+.talk img,.talk svg{display:block;width:56px;height:70px;object-fit:cover;filter:grayscale(1) contrast(1.08)}
+.talk .tn{font-weight:800;font-size:1.05rem}
+.talk .ts{font-family:var(--narrow);color:var(--ink-2);font-size:.9rem}
+.talk .rel{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-family:var(--narrow);margin:4px 0}
+.talk .rel .bar{height:8px;background:var(--tint);position:relative}
+.talk .rel .bar i{position:absolute;inset:0 auto 0 0}
+.talk .rel .bar b{position:absolute;top:-3px;bottom:-3px;width:1.5px;left:45%;background:var(--ink)}
+.talk .tb{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.sm{font:inherit;font-family:var(--narrow);font-weight:700;font-size:.9rem;text-transform:uppercase;letter-spacing:.04em;border:1.5px solid var(--ink);background:var(--paper);color:var(--ink);border-radius:0;padding:6px 10px;cursor:pointer}
+.sm:hover{background:var(--tint)}
+.sm:disabled{opacity:.35;cursor:not-allowed}
+.sm.fill{background:var(--ink);color:var(--paper)}
+.sm:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.einladung{border-left:3px solid var(--ink);padding:10px 12px;margin-bottom:10px;background:var(--tint);display:grid;gap:8px}
+.einladung .q{font-weight:600}
+.dopts{display:grid;gap:6px}
+.dopts .sm{text-align:left;text-transform:none;letter-spacing:0;font-size:.95rem;font-family:var(--head);font-weight:600}
+.tag{display:inline-block;font-family:var(--narrow);font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;padding:1px 6px;border:1.5px solid currentColor;margin-left:6px;vertical-align:1px}
+.tag.ok{color:var(--good)}.tag.no{color:var(--bad)}.tag.zu{color:var(--warn)}
+.legende{font-family:var(--narrow);font-size:.9rem;color:var(--ink-2);margin-top:8px;max-width:60ch}
+.ldetail{margin-top:14px;padding-top:12px;border-top:1px solid var(--hair);display:grid;gap:6px}
+.ldetail h3{font-weight:800;font-size:1.1rem;display:flex;justify-content:space-between;gap:10px}
+.ldetail h3 span{font-family:var(--narrow);font-weight:400;color:var(--ink-2)}
+/* Tagebuch */
+.log{display:grid}
+.log div{display:grid;grid-template-columns:5.5em 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--hair);font-size:.95rem}
+.log div:last-child{border-bottom:0}
+.log .wk{font-family:var(--narrow);color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em;font-size:.8rem;padding-top:2px}
+.log .ev{font-weight:600}
+/* Wahlabend */
+.verdict{font-family:var(--head);font-variation-settings:"wdth" 108;font-weight:900;font-size:clamp(1.5rem,5vw,2.3rem);line-height:1.05;letter-spacing:-.015em;margin:4px 0 16px;max-width:24ch}
+.verdict.good{color:var(--good)}.verdict.bad{color:var(--bad)}.verdict.mid{color:var(--warn)}
+canvas{max-width:100%;display:block;margin:0 auto}
+.seats{display:grid;margin-top:12px}
+.seat{display:grid;grid-template-columns:2em 1fr auto auto;gap:12px;align-items:center;padding:7px 0;border-bottom:1px solid var(--hair)}
+.seat .i{font-family:var(--narrow);font-weight:700;color:var(--ink-2)}
+.seat .nm{font-weight:700}
+.seat .nm span{font-weight:400;color:var(--ink-2)}
+.seat .pct,.seat .st{font-family:var(--narrow);text-align:right;font-weight:700;font-size:1.05rem}
+.seat .st{min-width:6.5em}
+.seat .st.out{color:var(--ink-2);font-weight:400}
+.seat .sw{display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px}
+.coals{display:grid;gap:0}
+.coal{display:grid;grid-template-columns:1fr auto;gap:4px 14px;padding:10px 0;border-bottom:1px solid var(--hair);align-items:start}
+.coal .t{font-weight:800;font-size:1.05rem}
+.coal .s{font-family:var(--narrow);font-weight:700;font-size:1.05rem;text-align:right}
+.coal .bar{grid-column:1/-1;height:8px;display:flex;background:var(--tint)}
+.coal .bar i{height:100%;display:block}
+.coal .w{grid-column:1/-1;font-size:.9rem;color:var(--ink-2)}
+.coal.no .t,.coal.no .s{color:var(--ink-2);font-weight:500}
+.coal.yes .w{color:var(--good)}
+.foot{font-family:var(--narrow);color:var(--ink-2);font-size:.9rem;margin-top:12px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<style>html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="sheet">
+  <header class="mast">
+    <div class="k"><span>Szenario: Deutschland, Herbst 2026</span><span>Fiktive Parteien · Lage angelehnt an Oktober 2026</span></div>
+    <h1>Kanzlerrennen</h1>
+    <p class="lead">Zehn Prozent sind mit der Regierung zufrieden. Eine Partei ganz rechts führt die Umfragen an, und niemand will mit ihr regieren. Sie glauben, Sie könnten es besser? Acht Wochen bis zur Wahl, dann vier Jahre regieren oder treiben, dann die nächste Wahl mit Ihrer Bilanz. Zeigen Sie es.</p>
+  </header>
+
+  <div id="auth">
+    <section>
+      <h2><span class="n">0</span>Anmelden</h2>
+      <p class="hint">Mit einem Konto wird der Spielstand nach jeder Entscheidung gespeichert, sodass Sie an den nächsten Tagen weiterspielen können. Bitte kein echtes Passwort aus anderen Diensten verwenden; dies ist ein Spiel, keine Bank.</p>
+      <div class="form">
+        <label>Benutzername<input id="aUser" type="text" autocomplete="username" maxlength="30" placeholder="z. B. oliver"></label>
+        <label>Passwort<input id="aPass" type="password" autocomplete="current-password" minlength="4" maxlength="100"></label>
+        <div class="foot" id="aMsg"></div>
+      </div>
+      <div class="actions"><button class="btn" id="aLogin">Anmelden</button><button class="btn ghost" id="aRegister">Neues Konto anlegen</button></div>
+      <p class="foot" id="aMode"></p>
+    </section>
+  </div>
+
+  <div class="acct" id="acct" hidden><span id="acctName"></span><button class="sm" id="acctSaves" hidden>Spielstand</button><button class="sm" id="acctOut">Abmelden</button></div>
+
+  <div id="resume" hidden>
+    <section>
+      <h2>Willkommen zurück</h2>
+      <div id="resumeInfo" class="hint"></div>
+      <div class="actions"><button class="btn" id="resumeGo">Weiterspielen</button><button class="btn ghost" id="resumeNew">Neue Kampagne</button></div>
+    </section>
+  </div>
+
+  <div id="setup" hidden>
+    <section>
+      <div class="steps"><span class="on" id="st1">1 Person</span><span id="st2">2 Partei</span><span id="st3" hidden>3 Gründung</span></div>
+    </section>
+
+    <section id="step1">
+      <h2><span class="n">1</span>Erstelle deine Person</h2>
+      <p class="hint">Wer tritt an? Name und Hintergrund bestimmen, mit wie viel Vertrauen und Geld du in den Wahlkampf startest.</p>
+      <div class="form">
+        <label>Name<input id="pName" type="text" placeholder="z. B. Anna Reuter" maxlength="40" autocomplete="off"></label>
+        <label>Alter<input id="pAge" type="number" min="25" max="80" value="48"></label>
+        <label>Hintergrund<select id="pJob">
+          <option value="jurist">Jurist oder Juristin · solide, 38 % Zufriedenheit, 24 Mio €</option>
+          <option value="buergermeister">Bürgermeister oder Bürgermeisterin · bodenständig, 46 %, 20 Mio €</option>
+          <option value="unternehmer">Unternehmer oder Unternehmerin · 34 %, 30 Mio €</option>
+          <option value="gewerkschaft">Gewerkschaft · 41 %, 18 Mio €</option>
+          <option value="quereinsteiger">Quereinstieg aus Medien · 50 %, 16 Mio €, schwankend</option>
+        </select></label>
+        <label>Foto (optional)<input id="pFoto" type="file" accept="image/*"></label>
+        <div class="fotoprev" id="fotoPrev"></div>
+      </div>
+      <div class="actions"><button class="btn" id="toStep2">Weiter: Partei wählen</button></div>
+    </section>
+
+    <section id="step2" hidden>
+      <h2><span class="n">2</span>Wähle deine Partei</h2>
+      <p class="hint">Die Parteien und Personen sind erfunden. Ihre Stärke, Hochburgen und Themenprofile sind an die reale Lage im Oktober 2026 angelehnt. Mit Ihrer Person ersetzen Sie einen der Platzhalter-Kandidaten, oder Sie gründen eine eigene Partei, ganz unten.</p>
+      <div class="ballot" id="partyPick"></div>
+      <div class="actions"><button class="btn ghost" id="back1">Zurück</button></div>
+    </section>
+
+    <section id="step3" hidden>
+      <h2><span class="n">3</span>Gründe deine Partei</h2>
+      <p class="hint">Neue Parteien starten bei rund vier Prozent und nehmen den Nachbarn im Spektrum Stimmen weg. Die Fünf-Prozent-Hürde ist dein erster Gegner.</p>
+      <div class="form">
+        <label>Parteiname<input id="gName" type="text" placeholder="z. B. Neue Mitte" maxlength="30"></label>
+        <label>Kürzel<input id="gKurz" type="text" placeholder="NM" maxlength="3" style="text-transform:uppercase"></label>
+        <label>Farbe<input id="gColor" type="color" value="#0b7a75"></label>
+        <label>Ausrichtung <span class="num" id="gPosV">Mitte</span><input id="gPos" type="range" min="-3" max="3" step="0.5" value="0"><span class="scale"><span>links</span><span>Mitte</span><span>rechts</span></span></label>
+        <div class="sub">Zugetraute Kompetenz · 240 Punkte verteilen <span class="num" id="gRest">(noch 0)</span></div>
+        <label>Wirtschaft und Arbeit <span class="num" id="cwV">60</span><input class="comp" id="cw" type="range" min="10" max="100" value="60"></label>
+        <label>Klima und Energie <span class="num" id="ckV">60</span><input class="comp" id="ck" type="range" min="10" max="100" value="60"></label>
+        <label>Migration und Sicherheit <span class="num" id="cmV">60</span><input class="comp" id="cm" type="range" min="10" max="100" value="60"></label>
+        <label>Soziales und Rente <span class="num" id="csV">60</span><input class="comp" id="cs" type="range" min="10" max="100" value="60"></label>
+      </div>
+      <div class="actions"><button class="btn" id="found">Partei gründen und Wahlkampf starten</button><button class="btn ghost" id="back2">Zurück</button></div>
+    </section>
+  </div>
+
+  <div id="game" hidden>
+    <nav class="tabs" id="tabs" aria-label="Bereiche">
+      <a href="#cockpit" data-view="cockpit" class="on">Cockpit</a>
+      <a href="#karte" data-view="karte">Karte</a>
+      <a href="#koalitionen" data-view="koalitionen">Koalitionen</a>
+      <a href="#sondierungen" data-view="sondierungen">Sondierungen <b class="badge" id="badgeTalks" hidden></b></a>
+      <a href="#tagebuch" data-view="tagebuch">Tagebuch</a>
+    </nav>
+
+    <div class="ticker">
+      <div><span>Woche </span><b class="num" id="sWeek">1 von 8</b></div>
+      <div><span>Kasse </span><b class="num" id="sBudget">24,0 Mio €</b></div>
+      <div><span>Umfrage </span><b class="num" id="sPoll">–</b></div>
+      <div><span>Partei </span><b id="sParty">–</b></div>
+    </div>
+
+    <div class="view" data-view="cockpit">
+      <div class="cockpit">
+        <div class="col">
+          <section class="kand" id="kand"></section>
+          <section>
+            <div class="profil" id="profil"></div>
+            <h2>Was das Land bewegt</h2>
+            <div class="agenda" id="agenda"></div>
+            <div class="news" id="news"></div>
+            <p class="foot" id="newsSrc"></p>
+          </section>
+          <section id="quick">
+            <h2>Entscheidungen</h2>
+            <div id="stmt"></div>
+            <div id="dilemma"></div>
+            <div id="einladungen"></div>
+            <div class="foot" id="quickHint"></div>
+          </section>
+        </div>
+        <div class="col">
+          <section>
+            <h2>Sonntagsfrage</h2>
+            <div class="poll" id="poll"></div>
+            <p class="foot">Zweitstimmen, gewichtet nach Wahlberechtigten. Strich: fünf Prozent.</p>
+          </section>
+          <section id="govPanel" hidden>
+            <h2 id="govTitle">Regierungsarbeit</h2>
+            <div class="govbars" id="govBars"></div>
+            <div class="sub" id="govLawTitle">Gesetzesvorhaben dieser Woche</div>
+            <div class="dopts" id="govLaws"></div>
+            <div class="plan" id="govStatus"></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+              <button class="btn" id="govEnd">Woche abschließen</button>
+            </div>
+          </section>
+          <section id="actionsPanel">
+            <h2>Wochenplanung</h2>
+            <div class="sub">Themenschwerpunkt · ohne Kosten</div>
+            <div class="opts" id="themes"></div>
+            <div class="sub">Maßnahmen · aus der Kasse</div>
+            <div class="opts" id="actions"></div>
+            <div class="plan" id="planSummary"></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+              <button class="btn" id="endWeek">Woche abschließen</button>
+              <button class="btn ghost" id="undoPlan">Planung verwerfen</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" data-view="karte" hidden>
+      <section>
+        <h2>Wer führt wo</h2>
+        <p class="hint">Jedes Land in der Farbe der stärksten Partei. Ein Land antippen, um es als Ziel für Kundgebung oder Plakate zu setzen und die Verteilung zu sehen.</p>
+        <div class="karte" id="karte"></div>
+        <div class="mlegende" id="legende"></div>
+        <div class="ldetail" id="ldetail" hidden></div>
+      </section>
+    </div>
+
+    <div class="view" data-view="koalitionen" hidden>
+      <section>
+        <h2>Koalitionsbild</h2>
+        <p class="hint">Hochrechnung aus der aktuellen Sonntagsfrage. Welche Bündnisse hätten heute eine Mehrheit, und mit wem gibt es überhaupt eine Gesprächsbasis.</p>
+        <div class="hr"><span>Sitze nach heutigem Stand</span><b class="num" id="hrSeats"></b></div>
+        <div class="coals" id="coalsLive"></div>
+      </section>
+    </div>
+
+    <div class="view" data-view="sondierungen" hidden>
+      <section>
+        <h2>Sondierungen</h2>
+        <p class="hint">Ein Gesprächstermin pro Woche. Koalitionsaussagen und Ausschlüsse sind öffentlich und wirken auf Wähler wie auf die anderen Parteien. Offene Einladungen beantworten Sie im Cockpit.</p>
+        <div class="talks" id="talks"></div>
+      </section>
+    </div>
+
+    <div class="view" data-view="tagebuch" hidden>
+      <section>
+        <h2>Tagebuch</h2>
+        <div class="log" id="log"></div>
+      </section>
+    </div>
+  </div>
+
+  <div id="result" hidden>
+    <section>
+      <h2>Wahlabend</h2>
+      <div class="verdict" id="verdict"></div>
+      <div class="kand" id="winner"></div>
+      <canvas id="hemi" width="720" height="400"></canvas>
+      <div class="seats" id="seats"></div>
+      <p class="foot">630 Sitze nach Sainte-Laguë/Schepers. Unter fünf Prozent gehen Parteien leer aus, es sei denn, sie gewinnen mindestens drei Wahlkreise (Grundmandatsklausel). Mehrheit ab 316.</p>
+    </section>
+    <section>
+      <h2>Regierungsbildung</h2>
+      <p class="hint">Alle Bündnisse, die rechnerisch eine Mehrheit hätten und in denen kein Partner überflüssig ist. Darunter, ob es politisch dazu käme.</p>
+      <div class="coals" id="coalitions"></div>
+      <div class="gallery" id="gallery"></div>
+    </section>
+    <section>
+      <h2>Wie geht es weiter</h2>
+      <div class="hint" id="nextHint"></div>
+      <div class="actions" id="nextActions"></div>
+    </section>
+    <section style="border-bottom:0">
+      <button class="btn ghost" id="restart">Alles verwerfen und neu anfangen</button>
+    </section>
+  </div>
+
+  <div id="verhandlung" hidden>
+    <section>
+      <h2>Koalitionsverhandlungen</h2>
+      <div class="hint" id="vhHint"></div>
+      <div class="vpartners" id="vhPartners"></div>
+    </section>
+    <section>
+      <h2>Ressorts verteilen</h2>
+      <p class="hint">Das Kanzleramt geht an die stärkste Partei. Die übrigen Ressorts werden nach Sitzen aufgeteilt; wählen Sie, welche Sie für sich beanspruchen. Partner wollen die Ressorts, bei denen ihnen Kompetenz zugetraut wird.</p>
+      <div class="ress" id="vhRess"></div>
+      <div class="plan" id="vhStatus"></div>
+    </section>
+    <section>
+      <h2>Koalitionsvertrag</h2>
+      <p class="hint">Drei Schwerpunkte für die Legislatur. Jeder Partner erwartet, dass sein Kernthema vorkommt.</p>
+      <div class="opts" id="vhThemes"></div>
+      <div class="actions"><button class="btn" id="vhSign" disabled>Koalitionsvertrag unterzeichnen</button><button class="btn ghost" id="vhBack">Zurück zum Wahlabend</button></div>
+    </section>
+  </div>
+</div>
+
+<script>
+// ---------- Daten ----------
+// Szenario: Deutschland, Herbst 2026. Die Parteien sind erfunden; ihre Stärke, regionale Verteilung und Kompetenzprofile
+// sind an die reale Umfragelage angelehnt (Wahltrend 22.10.2026, Länderergebnisse 2025 umgerechnet). Keine realen Parteinamen.
+const POLL_NOW={union:19.5,afd:28.4,spd:13.5,gruene:15.1,linke:10.9,bsw:3.2,fdp:4.2};
+const RESULT_2025={union:28.5,afd:20.8,spd:16.4,gruene:11.6,linke:8.8,bsw:4.97,fdp:4.3};
+const PARTIES = [
+  {id:'BU', key:'union', name:'Bürgerunion', color:'#2d4f8a', pos:1.2, gov:true, budget:22, desc:'Christdemokratisch-konservativ. Stellt den Kanzler, verliert seit Monaten. Hochburgen im Süden.', comp:{wirtschaft:.75,klima:.35,migration:.65,soziales:.4}},
+  {id:'HP', key:'afd', name:'Heimatpartei', color:'#6b4a7c', pos:3, budget:12, desc:'Rechtspopulistisch. Führt die Umfragen an, hat aber keinen einzigen Koalitionspartner.', comp:{wirtschaft:.55,klima:.1,migration:1,soziales:.5}},
+  {id:'SA', key:'spd', name:'Soziale Allianz', color:'#d4544a', pos:-1, gov:true, budget:18, desc:'Sozialdemokratisch. Juniorpartner in der Regierung, auf historischem Tief.', comp:{wirtschaft:.4,klima:.45,migration:.35,soziales:.8}},
+  {id:'ZG', key:'gruene', name:'Zukunftsgrün', color:'#3f9a5a', pos:-1.3, budget:10, desc:'Ökologisch. In der Opposition erholt, stark in Großstädten und im Südwesten.', comp:{wirtschaft:.3,klima:1,migration:.3,soziales:.55}},
+  {id:'LL', key:'linke', name:'Linke Liste', color:'#b7338a', pos:-2.7, budget:7, grund:{land:'Berlin',min:14}, desc:'Links. Stark im Osten, in Berlin und bei Jungen. Für die Bürgerunion nicht koalitionsfähig.', comp:{wirtschaft:.3,klima:.5,migration:.3,soziales:.9}},
+  {id:'NB', key:'bsw', name:'Neues Bündnis', color:'#8a5a2b', pos:-2.0, budget:4, desc:'Linkskonservativ. Kämpft um den Wiedereinzug, Hochburgen im Osten.', comp:{wirtschaft:.35,klima:.25,migration:.6,soziales:.65}},
+  {id:'FR', key:'fdp', name:'Freie Reformer', color:'#e0a21a', pos:1.5, budget:6, desc:'Wirtschaftsliberal. Seit 2025 außerparlamentarisch, kämpft um fünf Prozent.', comp:{wirtschaft:.7,klima:.25,migration:.4,soziales:.2}},
+];
+const SONST = '#9a9a9a';
+// Erfundene Spitzenkandidaten als Platzhalter. Fotos: img/kandidat-N.jpg (N = Position auf dem Stimmzettel).
+const CAND = [
+  {name:'Dr. Rainer Hollbeck', role:'Kanzler', pop:12, img:'img/kandidat-1.jpg'},
+  {name:'Bernd Krauthausen', role:'Spitzenkandidat', pop:30, img:'img/kandidat-5.jpg'},
+  {name:'Katrin Senftleben', role:'Vizekanzlerin', pop:22, img:'img/kandidat-2.jpg'},
+  {name:'Jonas Wiedemann', role:'Spitzenkandidat', pop:41, img:'img/kandidat-3.jpg'},
+  {name:'Marit Ostrowski', role:'Spitzenkandidatin', pop:38, img:'img/kandidat-6.jpg'},
+  {name:'Dr. Helga Brandner', role:'Spitzenkandidatin', pop:26, img:null},
+  {name:'Luisa Falkenrath', role:'Spitzenkandidatin', pop:33, img:'img/kandidat-4.jpg'},
+];
+const BASE_PARTIES=JSON.parse(JSON.stringify(PARTIES)), BASE_CAND=JSON.parse(JSON.stringify(CAND));
+let PERSON={name:'',age:48,job:'jurist',img:null};
+const JOBS={jurist:{pop:38,budget:24},buergermeister:{pop:46,budget:20},unternehmer:{pop:34,budget:30},gewerkschaft:{pop:41,budget:18},quereinsteiger:{pop:50,budget:16}};
+function silhouette(i,s){
+  const g='g'+i;
+  return `<svg viewBox="0 0 120 150" width="${s}" height="${s*1.25}" role="img" aria-label="${CAND[i].name}, kein Foto hinterlegt">
+    <defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d8d8d8"/><stop offset="1" stop-color="#9c9c9c"/></linearGradient>
+    <filter id="n${i}"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .18 0"/></filter></defs>
+    <rect width="120" height="150" fill="url(#${g})"/>
+    <path d="M10 150 q8 -42 50 -46 q42 4 50 46z" fill="#2e2e2e"/>
+    <path d="M60 104 q-14 -4 -16 -24 q-2 -34 16 -36 q18 2 16 36 q-2 20 -16 24z" fill="#3a3a3a"/>
+    <rect width="120" height="150" filter="url(#n${i})"/>
+    <rect x="0" y="144" width="120" height="6" fill="${PARTIES[i].color}"/>
+  </svg>`;
+}
+function portrait(i,size){
+  const s=size||120;
+  const c=CAND[i];
+  if(!c.img) return silhouette(i,s);
+  if(c.img.startsWith('data:')) return `<img class="foto" src="${c.img}" width="${s}" height="${s*1.25}" alt="${c.name}">`;
+  const sil=silhouette(i,s).replace(/"/g,'&quot;');
+  return `<img class="foto" src="${c.img}" width="${s}" height="${s*1.25}" alt="${c.name}" onerror="this.outerHTML='${sil.replace(/'/g,'&#39;')}'">`;
+}
+function resetData(){
+  PARTIES.length=0; BASE_PARTIES.forEach(p=>PARTIES.push(JSON.parse(JSON.stringify(p))));
+  CAND.length=0; BASE_CAND.forEach(c=>CAND.push(JSON.parse(JSON.stringify(c))));
+  LAENDER.forEach(l=>{ l.base.length=BASE_PARTIES.length; });
+}
+function foundParty(cfg){
+  const sumTh=t=>Object.values(t).reduce((a,b)=>a+b,0); POLL_NOW.neu=4;
+  PARTIES.push({id:cfg.id,name:cfg.name,color:cfg.color,pos:cfg.pos,desc:'Neugründung.',comp:cfg.comp,custom:true,budget:5,key:'neu'});
+  CAND.push({name:PERSON.name,role:'Gründer oder Gründerin',pop:JOBS[PERSON.job].pop,img:PERSON.img,custom:true});
+  LAENDER.forEach(l=>{
+    const fit=Object.keys(l.th).reduce((a,t)=>a+l.th[t]*cfg.comp[t],0)/sumTh(l.th); // 0.1..1
+    const s=4.2*(0.55+fit*0.9);
+    // Nachbarn im Spektrum geben ab
+    const near=l.base.map((v,i)=>[i,Math.abs(PARTIES[i].pos-cfg.pos)]).filter(([i,d])=>d<=1.75);
+    const wsum=near.reduce((a,[i,d])=>a+l.base[i]*(2-d),0);
+    near.forEach(([i,d])=>{ l.base[i]-=s*(l.base[i]*(2-d))/wsum; });
+    l.base.push(s);
+  });
+  return PARTIES.length-1;
+}
+// Wahlberechtigte in Mio (gerundet), Grundwerte je Partei, Themengewichte, Kartogramm-Position (Spalte, Zeile)
+// Regionale Verteilung je Land (gerundet, Reihenfolge wie PARTIES), umgerechnet auf den aktuellen Trend.
+const R25 = {
+  'Nordrhein-Westfalen':[30.4,16.8,20.0,12.0,8.0,4.5,4.9],'Bayern':[37.2,19.0,11.4,11.5,6.9,3.5,3.8],'Baden-Württemberg':[31.6,19.8,13.4,13.4,7.5,3.9,5.1],
+  'Niedersachsen':[28.0,17.0,21.6,11.5,8.5,4.3,4.0],'Hessen':[29.6,19.1,16.2,12.4,8.4,4.5,5.0],'Sachsen':[19.7,37.3,8.6,6.5,11.5,8.6,3.3],
+  'Rheinland-Pfalz':[29.5,20.6,17.2,10.0,7.4,4.9,5.0],'Berlin':[18.3,15.2,15.1,16.8,19.9,5.6,3.8],'Schleswig-Holstein':[28.8,16.0,19.9,13.6,7.8,4.1,5.3],
+  'Brandenburg':[18.2,32.5,12.6,6.4,10.5,10.3,2.7],'Sachsen-Anhalt':[19.2,37.1,10.0,4.6,10.5,9.6,3.0],'Thüringen':[18.6,38.6,8.8,4.2,12.0,9.9,2.9],
+  'Hamburg':[20.7,10.9,22.7,20.1,15.0,3.5,4.4],'Mecklenburg-Vorpommern':[18.0,35.0,12.7,5.4,11.2,10.4,2.8],'Saarland':[26.9,21.3,17.6,9.0,8.9,6.3,3.9],'Bremen':[18.9,14.7,22.3,18.1,15.1,5.3,4.1],
+};
+function swing(name){ return R25[name].map((v,i)=>+(v*POLL_NOW[PARTIES[i].key]/RESULT_2025[PARTIES[i].key]).toFixed(1)); }
+const LAENDER = [
+  {n:'Nordrhein-Westfalen',k:'NW',w:13.0,th:{wirtschaft:.9,klima:.5,migration:.7,soziales:.9}},
+  {n:'Bayern',k:'BY',w:9.4,th:{wirtschaft:.8,klima:.5,migration:.9,soziales:.5}},
+  {n:'Baden-Württemberg',k:'BW',w:7.7,th:{wirtschaft:.9,klima:.8,migration:.6,soziales:.5}},
+  {n:'Niedersachsen',k:'NI',w:6.1,th:{wirtschaft:.7,klima:.6,migration:.6,soziales:.8}},
+  {n:'Hessen',k:'HE',w:4.4,th:{wirtschaft:.9,klima:.6,migration:.7,soziales:.6}},
+  {n:'Sachsen',k:'SN',w:3.3,th:{wirtschaft:.6,klima:.3,migration:1,soziales:.7}},
+  {n:'Rheinland-Pfalz',k:'RP',w:3.1,th:{wirtschaft:.7,klima:.5,migration:.7,soziales:.7}},
+  {n:'Berlin',k:'BE',w:2.4,th:{wirtschaft:.5,klima:.8,migration:.7,soziales:.9}},
+  {n:'Schleswig-Holstein',k:'SH',w:2.3,th:{wirtschaft:.6,klima:.8,migration:.5,soziales:.7}},
+  {n:'Brandenburg',k:'BB',w:2.1,th:{wirtschaft:.6,klima:.4,migration:.9,soziales:.8}},
+  {n:'Sachsen-Anhalt',k:'ST',w:1.8,th:{wirtschaft:.6,klima:.3,migration:1,soziales:.8}},
+  {n:'Thüringen',k:'TH',w:1.7,th:{wirtschaft:.6,klima:.3,migration:1,soziales:.8}},
+  {n:'Hamburg',k:'HH',w:1.3,th:{wirtschaft:.8,klima:.8,migration:.5,soziales:.8}},
+  {n:'Mecklenburg-Vorpommern',k:'MV',w:1.3,th:{wirtschaft:.6,klima:.4,migration:.9,soziales:.8}},
+  {n:'Saarland',k:'SL',w:0.75,th:{wirtschaft:.9,klima:.4,migration:.6,soziales:.9}},
+  {n:'Bremen',k:'HB',w:0.46,th:{wirtschaft:.6,klima:.7,migration:.6,soziales:.9}},
+];
+LAENDER.forEach(l=>l.base=swing(l.n));
+const MAP={"Baden-Württemberg": "M247.3 549.2 246.5 558.1 248.7 558.9 251.6 554.6 252.9 558.8 256.9 554.5 259.5 557.2 259.3 562.2 262.4 567.2 258.8 572.7 261.4 573.8 265.1 569.5 264.0 572.2 265.9 572.2 266.4 580.2 271.6 580.2 274.9 573.6 276.1 577.4 278.7 577.4 276.9 583.9 281.5 589.2 277.8 590.8 279.0 593.8 277.5 595.0 280.1 596.1 280.9 600.9 278.0 603.4 279.5 603.8 278.8 609.1 287.5 615.1 284.2 619.7 287.2 620.5 287.3 625.8 294.1 626.8 300.8 636.4 298.9 639.4 300.8 641.0 298.9 645.6 300.4 649.4 297.8 653.2 303.3 662.1 297.8 664.7 299.6 661.3 297.4 660.9 293.7 665.5 293.0 661.6 288.5 660.1 287.4 664.3 291.8 670.0 290.0 670.4 291.1 678.9 285.5 679.9 286.3 681.9 281.9 685.5 272.7 685.8 273.1 688.8 268.4 694.0 274.7 704.2 275.9 714.7 279.6 723.2 279.3 731.7 275.7 738.0 277.5 740.3 277.1 746.1 275.3 747.3 279.0 752.7 274.7 755.9 277.9 758.6 278.6 767.5 275.7 767.6 275.0 771.6 271.8 766.1 267.9 770.0 260.0 767.3 253.6 774.8 241.9 777.0 237.5 770.1 225.4 767.5 207.7 752.3 216.4 761.2 219.2 768.5 215.5 770.0 204.2 760.2 205.4 762.0 200.9 761.8 205.2 765.7 197.7 769.8 195.2 766.8 196.5 764.4 192.2 760.8 189.8 763.1 191.6 767.2 187.0 765.5 187.1 758.3 184.5 758.6 182.3 754.2 180.5 758.3 179.9 754.3 176.5 753.3 177.0 755.9 170.3 757.9 165.8 767.3 170.2 771.0 178.7 767.5 180.5 770.2 178.4 770.6 177.6 775.5 173.4 771.6 169.3 775.0 171.8 777.1 167.9 778.5 160.9 778.2 158.4 774.1 152.7 772.8 145.1 779.4 135.7 780.8 132.2 776.2 127.6 776.1 117.7 782.1 115.3 779.5 118.4 778.6 117.8 776.3 113.6 777.5 108.2 769.3 110.4 746.3 114.6 736.7 111.1 730.2 111.7 721.3 117.5 711.0 119.3 702.5 122.6 699.6 121.9 692.5 126.6 680.5 126.6 672.3 137.4 655.3 145.0 650.5 152.2 634.4 158.6 629.5 163.0 619.6 164.7 605.6 171.5 598.6 168.8 595.3 171.7 592.5 172.0 589.0 169.7 589.1 172.6 584.0 168.5 583.1 169.9 580.7 166.7 572.5 167.4 569.0 178.0 575.3 180.2 572.6 178.6 566.2 185.0 564.7 183.9 569.7 187.0 575.6 198.4 576.8 196.9 580.6 193.5 580.3 194.3 584.1 191.7 586.4 195.5 587.8 201.8 582.0 201.8 576.7 213.5 575.8 210.8 573.1 211.9 569.3 221.7 568.9 225.4 561.7 232.1 562.8 232.8 555.9 230.9 554.0 228.7 556.7 230.1 554.3 224.9 553.2 226.7 552.8 225.9 550.1 238.2 548.1 242.3 552.8 242.2 548.9 247.3 549.2ZM185.7 763.5 186.6 765.5 182.6 765.7 185.7 763.5Z", "Bayern": "M279.0 468.7 283.6 468.3 285.5 472.6 292.1 474.5 296.7 481.9 296.0 485.0 300.2 484.2 302.5 489.3 309.9 491.6 310.3 502.5 317.6 505.1 318.3 500.1 326.2 500.0 317.2 492.3 317.5 488.5 324.6 485.4 331.8 485.3 335.6 490.3 335.6 488.0 338.6 490.3 343.1 488.0 346.1 491.8 345.0 496.1 352.2 498.3 354.1 487.9 351.9 476.3 356.9 475.1 358.5 471.7 363.8 472.4 363.0 479.0 364.9 482.1 367.2 480.9 369.9 487.1 374.5 484.0 387.2 482.0 389.8 485.1 397.2 481.5 400.1 485.0 399.9 489.3 409.3 493.4 410.1 496.6 406.8 499.4 414.2 505.6 414.2 514.3 418.2 516.3 417.9 519.5 433.2 527.3 432.3 532.2 437.0 533.5 434.0 542.7 432.1 543.0 432.0 547.7 427.5 551.4 430.2 556.4 435.7 558.4 435.5 564.2 438.1 565.0 439.6 573.4 443.4 574.7 442.6 580.0 444.4 585.0 450.9 588.3 452.5 593.3 463.5 593.7 468.8 597.8 469.1 602.1 478.4 611.8 478.4 614.9 486.0 617.4 493.0 624.6 494.3 632.9 499.1 636.2 500.0 633.2 505.1 633.2 510.5 642.1 515.8 643.0 521.3 653.7 518.1 658.9 520.6 667.3 519.6 672.5 515.0 678.9 499.5 671.9 495.1 675.2 496.3 680.3 493.5 694.7 485.3 702.2 472.5 704.7 458.0 712.8 450.4 721.8 466.7 749.3 460.8 761.9 467.6 762.1 471.9 766.1 473.5 771.5 469.7 777.1 470.1 786.5 467.5 789.5 464.6 788.3 453.5 779.6 452.3 777.5 455.2 773.9 451.6 770.9 452.4 767.7 440.8 767.3 438.9 772.0 434.3 772.6 429.7 765.1 418.1 767.6 417.8 761.0 412.6 765.3 414.8 775.4 402.2 773.3 391.8 777.7 377.3 775.7 373.7 784.7 364.3 784.6 361.1 788.9 363.4 791.6 358.0 791.0 353.6 797.3 350.4 797.3 351.8 792.7 334.2 796.8 330.9 788.2 326.7 788.2 330.4 784.3 328.0 782.0 320.8 784.3 309.5 778.3 307.0 782.2 298.5 777.1 298.6 786.2 300.5 787.3 301.1 792.9 298.6 798.6 295.8 798.9 291.4 806.5 281.4 809.9 285.1 797.1 276.5 801.1 274.7 795.1 276.4 794.4 276.2 790.5 270.1 787.4 268.3 780.7 262.0 782.8 258.0 780.7 257.2 775.9 252.9 781.7 245.1 778.2 247.9 774.2 254.4 774.4 260.0 767.3 267.9 770.0 271.8 766.1 275.0 771.6 275.7 767.6 278.6 767.5 277.9 758.6 274.7 755.9 279.0 752.7 275.3 747.3 277.1 746.1 277.5 740.3 275.7 738.0 279.3 731.7 279.6 723.2 275.9 714.7 274.7 704.2 268.4 694.0 273.1 688.8 272.7 685.8 281.9 685.5 286.3 681.9 285.5 679.9 291.1 678.9 290.0 670.4 291.8 670.0 287.4 664.3 288.5 660.1 293.0 661.6 293.7 665.5 297.4 660.9 299.6 661.3 297.8 664.7 303.3 662.1 297.8 653.2 300.4 649.4 298.9 645.6 300.8 641.0 298.9 639.4 300.8 636.4 294.1 626.8 287.3 625.8 287.2 620.5 284.2 619.7 287.5 615.1 278.8 609.1 279.5 603.8 278.0 603.4 280.9 600.9 280.1 596.1 277.5 595.0 279.0 593.8 277.8 590.8 281.5 589.2 276.9 583.9 278.7 577.4 276.1 577.4 274.9 573.6 271.6 580.2 267.6 580.6 265.3 579.1 265.1 569.5 261.4 573.8 258.8 572.7 262.4 566.8 257.6 554.5 253.2 558.8 251.6 554.6 248.0 558.9 246.1 557.4 247.7 548.0 242.2 548.9 242.3 552.8 238.2 548.1 229.7 549.0 224.9 553.2 230.1 554.3 227.9 555.1 229.4 557.0 231.6 554.3 233.2 557.8 232.1 562.8 225.4 561.7 220.2 569.7 213.0 570.1 209.6 567.0 212.2 562.8 211.0 557.8 215.5 552.4 212.4 550.9 214.3 547.1 211.6 547.5 211.6 542.1 207.8 541.8 206.9 526.9 209.1 526.5 207.9 521.5 204.5 520.5 207.0 514.3 213.8 512.9 216.1 513.6 215.9 516.7 220.3 510.4 229.5 512.2 232.2 517.6 238.8 516.3 239.6 508.5 237.8 507.8 237.5 500.8 248.0 501.8 246.4 500.3 247.5 497.9 253.5 493.6 253.6 482.6 262.5 484.5 267.5 482.1 275.1 469.5 279.0 468.7Z", "Berlin": "M477.2 256.1 480.7 257.3 481.7 252.7 484.4 253.2 485.3 249.7 490.8 253.3 497.7 250.4 496.5 249.2 498.2 247.7 501.2 251.2 500.3 256.6 510.0 263.0 507.1 269.1 516.9 272.4 509.9 282.7 509.2 278.8 498.5 277.0 497.8 274.3 494.6 275.4 494.9 278.8 483.1 274.3 475.8 277.6 472.7 274.5 478.1 265.4 474.6 263.7 477.2 256.1Z", "Brandenburg": "M524.2 161.8 526.6 170.2 547.8 169.3 547.5 175.5 538.6 186.7 549.0 187.0 553.0 181.4 559.6 180.0 561.4 186.7 556.1 195.1 557.5 199.7 556.0 205.9 541.4 217.9 542.3 226.4 540.0 230.5 554.4 238.9 562.6 249.5 573.9 257.6 571.4 262.5 573.4 266.0 566.7 276.7 570.3 285.6 569.4 287.8 577.8 292.8 575.9 305.3 580.6 310.3 576.6 327.8 570.3 334.9 580.4 352.6 580.5 359.2 576.9 359.6 575.6 364.6 569.4 362.4 554.4 369.8 542.1 365.2 538.1 370.3 539.1 372.0 535.3 372.0 537.3 375.4 533.0 383.0 530.2 380.4 517.6 384.3 503.3 383.4 494.2 374.7 492.5 377.7 488.7 376.1 485.4 381.8 481.9 380.5 481.2 377.1 479.2 377.4 481.4 369.4 480.0 364.0 470.8 354.5 479.6 347.4 475.6 333.9 477.3 331.2 469.8 331.4 470.2 328.4 465.5 328.3 464.8 324.8 457.6 325.0 457.3 321.5 453.3 322.2 445.9 317.1 437.1 320.0 432.5 314.5 429.7 316.4 415.6 300.7 420.9 295.0 417.8 291.9 421.9 282.3 420.3 280.8 421.6 276.2 419.6 275.0 423.4 268.5 417.0 263.8 414.6 266.8 412.6 265.6 413.8 262.9 411.0 263.7 413.5 258.7 412.8 253.3 417.2 253.0 416.9 246.8 414.6 244.0 415.5 237.9 418.3 235.6 416.8 229.0 391.1 224.0 389.9 222.0 391.6 219.4 381.1 216.5 380.7 213.4 377.1 213.0 377.5 209.9 369.8 209.4 365.8 205.9 358.4 208.5 353.6 203.4 361.7 202.7 361.7 199.6 371.1 201.3 373.6 197.0 372.8 192.0 377.3 189.0 390.3 190.7 388.3 188.0 403.0 182.7 404.7 175.8 412.4 179.0 416.5 177.2 418.5 180.7 427.3 182.8 430.5 188.3 445.0 187.8 445.4 190.5 451.0 191.0 449.8 193.7 451.4 194.9 465.1 193.6 463.0 196.3 465.4 197.5 474.5 189.2 478.6 188.2 481.7 191.7 486.4 185.3 493.1 188.5 495.3 183.2 501.0 181.0 502.5 172.6 507.4 171.5 513.0 164.0 520.9 162.3 517.7 160.6 518.3 156.0 520.1 160.3 524.2 161.8Z", "Bremen": "M203.8 200.6 201.4 201.0 204.3 203.7 202.3 204.5 203.7 208.7 200.5 212.3 196.0 209.3 192.9 211.4 189.9 208.0 187.2 210.0 180.3 196.7 171.2 190.1 178.5 191.4 178.2 194.5 193.6 196.6 195.7 199.6 201.3 197.5 203.8 200.6Z", "Hamburg": "M274.9 139.2 283.2 136.8 279.6 142.2 285.2 148.0 280.3 156.1 291.9 167.5 286.5 171.8 281.8 171.5 273.7 164.6 270.0 169.3 264.1 169.7 264.9 166.2 261.1 168.2 254.7 160.1 255.1 155.1 252.1 154.7 254.5 147.4 258.8 152.0 264.1 145.0 275.0 142.3 274.9 139.2Z", "Hessen": "M237.4 356.2 245.9 355.6 249.9 361.3 243.4 367.5 247.0 372.8 247.1 378.2 242.2 381.0 241.5 385.7 252.6 390.6 255.2 386.3 253.0 388.3 251.0 383.4 258.4 378.7 261.7 382.9 260.8 378.7 264.4 378.3 268.5 392.2 274.0 393.0 275.2 398.4 285.7 402.4 284.2 409.7 281.5 406.2 278.4 407.3 281.9 409.6 280.0 416.2 284.7 419.3 280.5 422.4 273.0 420.4 271.5 423.8 274.7 427.3 266.8 427.3 266.9 429.6 269.6 428.4 268.8 431.5 271.2 430.0 274.3 433.9 271.6 435.8 271.7 439.3 267.0 440.4 267.4 444.6 265.1 446.6 266.2 449.2 261.9 459.2 266.7 460.4 267.0 456.1 273.4 455.5 275.9 460.2 272.7 462.1 274.4 468.0 272.8 474.6 267.9 481.7 260.2 484.5 254.4 481.8 253.1 494.7 247.5 497.9 246.4 500.3 248.0 501.8 237.5 500.8 237.8 507.8 239.6 508.5 238.8 516.3 232.2 517.6 229.5 512.2 220.3 510.4 215.9 516.7 216.1 513.6 213.8 512.9 205.9 516.2 204.5 521.2 207.9 521.5 209.1 526.5 206.9 526.9 207.8 541.8 211.6 542.1 211.6 547.5 214.3 547.1 212.4 550.9 215.5 552.4 211.0 557.8 212.2 562.8 209.6 565.1 211.9 569.3 210.8 573.1 213.5 575.8 201.8 576.7 201.8 582.0 192.8 587.9 193.5 580.3 196.9 580.6 198.4 576.8 187.0 575.6 183.9 569.7 185.0 564.7 178.6 566.2 180.2 572.6 175.8 575.5 165.1 565.7 163.0 558.2 171.1 550.1 167.4 550.3 164.6 544.6 165.3 541.5 162.2 538.2 162.0 530.2 157.3 524.2 151.6 522.6 132.0 529.0 125.2 520.4 130.8 512.6 135.5 515.3 135.8 511.4 132.6 508.3 134.0 504.7 139.7 501.5 142.5 503.8 144.3 501.8 142.7 498.0 148.4 497.4 144.7 487.0 138.3 482.9 141.3 479.3 139.1 475.5 140.0 471.2 143.0 468.0 149.9 468.6 150.7 463.5 147.1 455.6 151.1 449.4 147.9 443.6 157.4 434.3 164.2 436.6 170.2 431.1 169.9 425.7 175.6 420.5 173.2 417.9 174.5 412.0 187.4 410.8 185.8 408.2 190.7 400.6 188.6 394.9 178.7 396.4 176.9 392.1 185.4 382.9 202.0 381.6 202.7 377.3 200.8 377.4 199.0 372.0 204.2 369.2 211.7 370.1 212.2 375.9 219.7 374.1 229.6 360.3 227.3 358.1 236.6 353.6 237.4 356.2Z", "Mecklenburg-Vorpommern": "M435.2 59.5 444.0 63.9 464.1 64.4 453.7 67.4 442.8 65.7 438.9 67.9 440.0 70.0 429.7 70.5 424.7 78.0 426.2 80.8 424.9 82.2 431.3 84.0 427.9 80.8 436.2 74.7 437.3 70.4 439.9 72.7 445.0 69.3 444.2 67.4 448.0 67.8 449.2 71.3 452.6 68.7 454.2 74.0 467.9 64.2 468.2 68.6 472.7 71.7 471.6 74.0 473.5 80.6 485.3 85.4 489.3 91.1 487.4 93.3 493.8 91.7 491.6 95.1 493.5 93.6 496.5 100.5 499.4 101.0 498.6 97.0 512.2 92.0 519.4 99.2 515.3 106.8 526.4 118.0 520.6 123.8 528.0 119.4 525.9 110.9 529.8 110.9 529.4 116.8 531.0 113.8 534.8 115.9 535.1 110.3 530.4 103.3 526.2 103.2 527.1 106.2 523.0 110.0 524.1 105.7 522.8 104.8 516.9 107.9 519.8 99.6 515.6 93.3 519.2 91.3 523.6 99.3 533.0 104.2 546.5 117.2 544.2 118.7 546.3 123.9 534.6 123.0 525.4 126.6 519.4 124.6 534.6 135.4 550.5 137.0 546.1 140.8 549.9 141.2 551.0 148.0 553.3 149.6 551.9 157.5 556.6 166.1 559.3 179.6 553.0 181.4 549.0 187.0 538.6 186.7 547.5 175.5 547.8 169.3 526.6 170.2 524.2 161.6 520.1 160.3 518.3 156.0 517.7 160.6 520.9 162.3 513.0 164.0 507.4 171.5 502.5 172.6 501.0 181.0 495.3 183.2 493.1 188.5 486.4 185.3 481.7 191.7 478.6 188.2 474.5 189.2 465.4 197.5 463.0 196.3 465.1 193.6 451.4 194.9 449.8 193.7 451.0 191.0 445.4 190.5 445.0 187.8 430.5 188.3 427.3 182.8 418.5 180.7 416.5 177.2 412.4 179.0 404.7 175.8 403.0 182.7 398.1 186.2 394.4 185.3 392.8 188.4 388.3 188.0 390.3 190.7 384.6 191.8 377.3 189.0 372.0 192.8 373.6 197.0 371.1 201.3 361.7 199.6 360.9 202.7 347.9 199.8 348.7 195.2 340.2 190.0 335.3 179.1 330.4 177.4 325.1 181.7 316.6 174.4 309.3 175.0 312.1 165.5 324.2 160.1 324.1 153.5 330.7 153.0 332.2 143.4 319.8 135.7 318.9 126.5 320.5 122.3 327.5 117.4 329.2 120.2 333.3 119.1 328.3 117.8 328.8 114.5 347.4 108.3 352.6 111.5 352.6 116.8 357.6 114.2 365.4 120.2 367.3 113.2 364.7 114.0 364.8 110.2 363.7 113.9 361.1 113.5 360.4 110.2 367.9 107.5 366.3 112.6 367.8 113.2 369.7 106.6 373.2 106.5 376.6 100.6 375.2 99.2 370.5 104.8 370.1 102.4 380.4 94.0 391.6 94.8 406.9 90.8 407.2 94.1 409.3 94.3 410.5 92.0 407.4 91.1 423.3 78.9 435.2 59.5ZM494.7 38.7 491.2 43.8 494.1 49.8 511.1 51.4 510.4 55.7 503.9 61.9 506.5 67.8 510.7 68.2 516.8 74.4 513.5 77.6 514.1 81.4 508.9 79.0 512.7 76.0 506.6 77.0 511.3 73.6 506.8 75.5 504.6 73.2 496.4 75.0 492.4 81.7 489.7 81.8 494.0 83.4 492.4 86.9 485.6 83.8 487.6 84.4 488.5 81.0 484.2 83.5 479.7 81.8 479.3 79.0 475.7 80.5 478.7 78.6 474.1 75.4 474.9 71.3 483.7 70.1 480.4 65.2 476.4 65.3 484.1 60.0 481.5 59.3 481.7 56.7 477.0 57.5 476.0 53.0 483.3 52.5 486.6 56.4 486.1 52.4 490.7 49.6 488.7 52.8 491.3 51.7 493.6 58.5 499.7 59.9 499.4 52.8 492.5 50.3 490.8 46.0 482.5 51.8 485.1 42.7 477.1 51.7 482.9 41.3 494.7 38.7ZM478.6 58.5 481.4 61.1 474.5 63.9 478.6 58.5ZM475.5 46.9 476.9 49.6 473.8 49.2 474.2 54.0 470.8 62.3 473.0 48.5 475.5 46.9Z", "Niedersachsen": "M183.9 121.1 188.9 126.3 197.2 127.8 205.8 127.0 211.1 122.0 223.6 123.5 238.0 141.0 240.6 149.0 255.1 155.1 254.7 160.1 261.1 168.2 263.6 165.1 265.3 167.4 264.1 169.7 269.1 169.7 273.7 164.6 281.8 171.5 291.9 167.9 308.2 175.4 316.6 174.4 325.1 181.7 331.2 177.4 335.3 179.1 340.2 190.0 348.7 195.2 347.9 199.8 353.2 200.7 357.2 207.7 365.8 205.9 375.1 210.6 372.6 214.5 369.4 214.0 368.9 220.2 356.7 227.0 338.4 222.9 335.2 223.6 331.9 229.4 320.4 229.4 322.3 243.0 324.7 242.7 330.5 254.8 334.2 253.2 331.4 259.1 336.3 266.8 332.3 266.7 331.5 270.2 340.8 279.1 334.9 282.9 341.7 294.4 337.0 297.4 340.1 300.5 339.0 304.0 332.4 306.9 334.0 312.0 315.5 312.4 307.1 316.9 313.1 322.0 310.3 323.9 313.1 327.8 308.0 333.4 308.0 340.5 311.6 343.1 316.4 355.0 312.1 357.5 313.7 363.9 309.8 362.0 304.4 364.7 295.0 361.1 293.1 367.6 285.8 373.0 283.1 371.8 279.6 376.0 280.8 377.2 273.8 376.4 266.5 382.5 264.4 378.3 260.8 378.7 261.7 382.9 258.4 378.7 251.0 383.4 253.0 388.3 255.2 386.3 252.6 390.6 241.5 385.7 242.2 381.0 247.1 378.2 247.0 372.8 243.4 367.5 249.9 361.3 245.9 355.6 229.8 354.6 231.5 349.1 230.2 343.1 234.3 339.5 233.4 334.5 235.3 332.9 227.1 333.1 227.7 328.8 222.9 325.5 223.2 321.2 216.5 320.2 218.0 318.2 216.3 314.4 217.4 310.5 213.8 308.2 215.3 305.1 206.1 304.2 203.9 297.6 207.9 299.1 207.4 294.8 209.8 294.0 202.5 288.7 212.8 276.0 211.1 271.8 213.8 268.3 210.9 266.0 208.1 265.7 200.9 276.0 195.3 277.3 185.8 276.8 185.4 265.5 182.1 262.5 172.6 264.4 167.6 271.1 159.2 269.8 159.8 275.6 168.4 280.0 170.1 285.0 168.5 295.9 173.4 298.4 165.8 306.4 157.0 303.9 152.1 310.2 141.4 310.8 137.6 314.1 131.8 308.9 139.9 305.9 140.5 299.9 132.8 297.2 136.4 289.1 134.6 286.1 138.6 285.5 135.2 279.6 120.9 276.1 119.2 270.5 114.0 268.4 111.7 273.1 113.7 274.1 112.3 278.8 93.4 290.4 78.5 292.6 75.8 287.3 79.0 278.1 74.3 269.1 70.6 272.5 55.1 267.5 53.2 260.1 58.7 259.1 55.8 256.5 57.1 250.6 77.3 251.8 80.0 229.9 91.0 214.2 90.7 203.7 88.7 201.0 93.0 197.0 92.5 193.1 91.7 189.6 87.3 189.1 90.2 179.6 75.6 178.9 73.8 176.3 77.1 161.1 76.1 158.4 82.6 158.5 79.8 153.9 84.2 148.6 94.6 142.8 108.6 144.1 140.4 140.0 142.2 147.1 146.5 147.1 150.6 156.2 149.5 160.5 143.6 161.3 144.1 165.5 155.8 172.4 160.0 165.4 160.0 159.6 154.4 159.8 157.1 150.5 173.1 156.0 175.8 159.2 173.3 161.8 176.7 160.0 171.0 141.7 175.8 127.2 183.9 121.1ZM172.0 117.0 173.0 118.5 171.2 118.8 172.0 117.0ZM139.9 132.2 140.8 136.4 138.5 133.8 139.9 132.2ZM132.5 131.3 137.2 133.3 129.3 132.1 132.5 131.3ZM120.1 132.8 126.6 133.3 117.5 135.0 120.1 132.8ZM111.4 135.1 114.9 136.1 104.5 138.3 105.6 135.4 111.4 135.1ZM99.7 137.5 102.0 138.5 97.4 138.3 99.7 137.5ZM94.6 138.7 96.3 138.9 82.9 140.6 94.6 138.7ZM77.7 142.7 80.1 143.1 64.3 145.1 77.7 142.7ZM67.4 145.9 67.1 148.8 65.0 147.4 67.4 145.9ZM58.3 149.5 61.5 151.2 55.6 153.2 57.5 156.0 49.7 151.7 58.3 149.5Z", "Nordrhein-Westfalen": "M182.9 263.3 185.4 265.5 185.8 276.8 187.8 277.5 200.9 276.0 208.1 265.7 213.4 267.5 210.6 280.8 206.6 282.0 202.5 288.7 209.8 294.0 207.4 294.8 207.9 299.1 203.9 297.6 206.1 304.2 215.3 305.1 213.8 308.2 217.4 310.5 216.3 314.4 218.0 318.2 216.5 320.2 223.2 321.2 222.9 325.5 227.7 328.8 227.1 333.1 235.3 332.9 233.4 334.5 234.3 339.5 229.9 344.6 231.5 349.1 229.8 354.6 234.3 354.8 227.3 358.1 229.6 360.3 219.7 374.1 212.2 375.9 212.1 370.5 207.5 367.9 199.0 372.0 200.8 377.4 202.7 377.3 202.0 381.6 185.4 382.9 180.7 387.0 176.6 393.3 178.7 396.4 187.7 393.7 190.7 400.6 185.8 408.2 187.4 410.8 174.5 412.0 173.2 417.9 175.6 420.5 169.9 425.7 170.2 431.1 164.2 436.6 157.4 434.3 147.9 443.6 151.1 449.0 149.3 453.7 142.8 453.2 137.6 445.4 137.6 438.0 128.5 434.3 129.8 429.6 126.2 427.8 122.1 430.4 124.0 438.0 117.2 440.7 118.9 443.7 117.1 446.1 98.8 451.5 96.2 459.8 88.2 461.5 87.7 458.8 83.7 464.1 77.6 463.7 69.4 468.4 69.6 471.2 66.5 471.7 67.7 477.9 65.1 479.6 61.0 475.5 57.7 477.2 61.4 489.5 54.7 491.6 52.6 488.1 50.4 490.8 48.1 486.2 37.9 491.2 38.5 488.5 34.0 485.9 34.8 492.4 30.6 486.4 32.9 479.5 30.0 474.6 23.1 473.7 19.7 468.7 26.6 461.8 19.7 461.3 19.8 457.4 16.2 452.2 10.3 450.5 9.2 445.3 6.0 443.2 10.2 441.2 9.7 438.0 13.2 437.8 13.8 430.1 9.4 428.9 10.4 423.7 2.1 424.2 0.0 416.6 6.4 418.3 9.4 412.1 19.6 406.0 17.9 403.9 21.0 402.0 14.4 403.7 13.5 396.5 23.6 383.9 23.7 380.0 22.5 368.2 14.4 359.0 16.2 353.2 11.0 351.4 11.7 347.4 6.0 344.8 8.7 342.0 6.6 335.4 12.9 332.0 19.5 334.0 15.4 329.5 18.8 327.8 35.7 336.0 34.7 330.9 39.8 333.0 53.7 326.2 57.0 328.4 63.3 321.5 63.1 318.4 54.1 313.7 54.3 310.2 57.0 310.1 58.7 305.3 65.8 304.6 73.6 294.1 84.3 290.0 93.4 290.4 112.3 278.8 113.7 274.1 111.7 273.1 114.0 268.4 119.2 270.5 120.9 276.1 135.2 279.6 138.6 285.5 134.6 286.1 136.4 289.1 132.8 297.2 141.0 301.1 139.3 301.6 139.9 305.9 131.8 308.9 134.0 312.7 152.1 310.2 157.0 303.9 165.8 306.4 173.4 298.4 168.5 295.9 170.1 285.0 168.4 280.0 159.8 275.6 158.8 270.2 167.6 271.1 172.6 264.4 182.9 263.3Z", "Rheinland-Pfalz": "M126.2 427.8 129.8 429.6 128.5 434.3 137.6 438.0 137.6 445.4 142.8 453.2 147.2 452.9 148.5 462.3 150.7 464.3 148.5 470.2 143.0 468.0 140.0 471.2 139.1 475.5 141.3 479.3 138.3 482.9 144.7 487.0 148.4 497.4 142.7 498.0 144.3 501.8 142.5 503.8 139.7 501.5 134.0 504.7 132.6 508.3 135.8 511.4 135.5 515.3 130.8 512.6 125.2 520.4 132.0 529.0 156.2 523.1 162.0 530.2 162.2 538.2 165.3 541.5 164.6 544.6 167.4 550.3 171.1 550.1 163.0 558.2 167.4 569.0 166.7 572.5 169.9 580.7 168.5 583.1 172.6 584.0 169.7 589.1 172.0 589.0 171.7 592.5 168.8 595.3 171.5 598.6 165.0 604.8 163.0 619.6 155.1 633.2 145.3 631.1 135.2 624.1 130.6 626.5 126.2 623.3 117.8 625.2 108.6 619.8 106.0 612.4 97.0 612.2 93.0 604.4 99.1 599.5 100.7 590.6 93.1 588.6 90.6 584.1 94.2 580.1 92.5 576.7 94.3 573.6 92.4 573.3 91.8 568.3 88.1 570.4 75.9 562.7 48.2 575.8 33.2 572.9 32.2 570.2 35.7 565.7 36.2 560.6 42.2 554.6 43.0 545.8 34.9 544.7 32.2 541.1 28.8 543.0 28.6 540.0 23.9 537.1 22.7 531.0 19.1 530.7 14.8 519.7 18.0 507.8 20.8 506.2 19.6 501.4 26.4 498.3 28.1 492.8 36.0 492.4 33.3 486.4 38.5 488.5 37.9 491.2 48.1 486.2 50.4 490.8 52.6 488.1 54.7 491.6 61.4 489.5 57.7 477.2 61.0 475.5 65.1 479.6 67.7 477.9 66.5 471.7 69.6 471.2 69.4 468.4 77.6 463.7 83.7 464.1 87.7 458.8 88.2 461.5 96.2 459.8 98.8 451.5 117.1 446.1 118.9 443.7 117.2 440.7 124.0 438.0 122.1 430.4 126.2 427.8Z", "Saarland": "M76.3 563.0 88.1 570.4 91.8 568.3 92.4 573.3 94.3 573.6 92.5 576.7 94.2 580.1 90.6 584.1 93.1 588.6 100.7 590.6 99.1 599.5 93.0 604.4 97.6 614.8 86.8 618.0 80.3 613.9 77.7 618.2 76.1 610.4 68.9 606.7 63.4 607.7 64.8 611.4 63.0 614.2 56.7 612.8 52.1 600.8 45.4 593.6 47.6 591.8 43.4 584.8 36.7 580.6 31.6 581.6 32.7 572.9 48.2 575.8 69.9 563.5 76.3 563.0Z", "Sachsen-Anhalt": "M377.1 212.2 380.7 213.4 381.1 216.5 391.6 219.4 389.9 222.0 391.1 224.0 416.8 229.0 418.3 235.6 415.5 237.9 414.6 244.0 416.9 246.8 417.2 253.0 412.8 253.3 413.5 258.7 411.0 263.7 413.8 262.9 412.6 265.6 414.6 266.8 417.0 263.8 423.4 268.5 419.6 275.0 421.6 276.2 420.3 280.8 421.9 282.3 417.8 291.9 420.9 295.0 415.6 300.7 419.5 307.3 429.7 316.4 433.3 314.9 437.1 320.0 445.9 317.1 453.3 322.2 457.3 321.5 457.6 325.0 464.8 324.8 465.5 328.3 470.2 328.4 469.8 331.4 477.3 331.2 475.6 333.9 479.6 347.4 469.2 355.6 467.7 352.5 463.6 355.5 456.3 351.1 452.6 354.9 446.7 353.2 443.5 357.8 417.4 363.0 414.6 366.8 414.9 371.4 411.3 373.6 414.4 377.9 414.3 387.5 411.5 388.6 415.3 399.4 413.3 402.8 415.6 402.8 414.8 407.0 417.5 408.2 416.3 410.1 420.6 412.1 418.2 417.4 421.3 418.2 416.5 427.6 413.8 423.8 402.4 424.8 399.7 422.1 400.5 420.2 393.5 415.5 385.7 417.4 379.5 410.1 366.6 410.5 366.6 402.0 359.6 398.9 367.1 390.8 362.1 386.2 361.7 381.9 357.0 379.2 335.2 378.6 336.3 377.4 333.6 377.0 334.0 372.0 331.7 370.0 332.5 366.2 328.2 361.5 331.7 359.9 330.9 357.6 316.4 355.0 311.6 343.1 308.0 340.5 308.0 333.4 313.1 327.8 310.3 323.9 313.1 322.0 308.7 320.0 307.5 316.1 311.5 316.6 315.5 312.4 334.0 312.0 332.4 306.9 339.0 304.0 340.1 300.5 337.0 297.4 341.7 294.4 334.9 282.9 340.8 279.1 331.5 270.2 332.3 266.7 336.3 266.8 331.4 259.1 334.2 253.2 330.5 254.8 324.7 242.7 322.3 243.0 320.4 229.4 331.9 229.4 335.2 223.6 338.4 222.9 356.7 227.0 368.9 220.2 369.8 213.6 378.3 210.7 377.1 212.2Z", "Sachsen": "M458.6 352.0 463.6 355.5 467.7 352.5 473.0 358.8 477.7 359.7 477.2 363.5 481.4 367.5 479.2 377.4 481.2 377.1 481.9 380.5 485.4 381.8 488.7 376.1 492.5 377.7 494.2 374.7 503.3 383.4 517.6 384.3 530.2 380.4 533.0 383.0 537.3 375.4 535.3 372.0 539.1 372.0 538.1 370.3 542.1 365.2 554.4 369.8 569.4 362.4 575.6 364.6 577.2 359.6 580.4 367.4 591.6 370.6 595.1 374.7 595.4 385.1 599.4 389.7 600.0 396.9 592.9 422.8 585.7 433.2 584.7 439.7 572.1 437.0 574.7 428.9 568.7 429.9 571.0 423.1 564.9 420.2 564.9 416.6 564.2 419.8 558.1 421.1 551.3 416.3 548.2 424.7 558.3 427.9 556.4 433.5 548.7 433.7 535.9 442.7 529.1 442.3 525.2 444.4 525.4 448.7 522.3 451.2 502.5 451.7 501.0 459.8 497.0 463.9 491.1 459.0 488.0 465.4 482.9 464.3 479.4 473.9 468.8 473.0 468.4 479.2 465.1 482.8 455.4 478.2 447.3 484.6 441.4 482.3 434.9 484.3 433.4 489.6 425.0 497.2 422.6 507.2 419.6 506.9 419.8 502.3 416.5 499.6 417.7 497.3 413.9 496.9 413.8 492.3 409.0 493.4 399.6 488.9 400.1 485.0 394.2 479.6 398.4 478.4 399.3 474.9 393.2 469.2 402.3 459.5 403.7 467.9 411.9 465.6 411.3 460.2 419.5 459.4 423.2 454.4 417.0 448.2 421.0 444.5 418.3 440.2 430.7 437.9 433.5 432.6 444.8 429.5 441.8 421.7 436.4 421.6 437.2 418.9 435.3 419.6 435.0 415.0 431.9 412.7 416.3 410.1 417.5 408.2 414.8 407.0 415.6 402.8 413.3 402.8 415.3 399.4 411.5 388.6 414.3 387.5 414.4 377.9 411.3 373.6 414.9 371.4 414.2 367.6 417.4 363.0 458.6 352.0Z", "Schleswig-Holstein": "M340.2 54.3 351.0 57.2 356.2 68.1 343.4 68.0 341.9 63.5 336.3 64.0 336.8 58.4 340.2 54.3ZM166.0 1.3 168.3 4.2 162.5 9.3 163.3 16.0 167.4 18.6 192.5 14.5 219.5 20.9 223.3 26.4 231.5 22.4 233.3 27.9 244.9 18.8 244.2 23.4 256.6 27.0 260.0 31.2 264.1 30.5 264.2 27.0 267.3 28.7 272.5 40.0 269.1 37.0 266.2 39.9 265.8 44.6 255.2 49.5 251.9 54.9 253.8 53.0 266.2 45.0 266.8 39.8 272.5 40.2 272.0 52.6 259.8 61.3 261.6 63.4 278.6 59.4 283.3 62.5 281.3 64.7 282.8 69.3 279.9 71.5 278.9 77.5 282.3 75.8 281.9 72.3 285.2 66.9 291.1 64.6 309.7 72.2 316.4 78.2 321.8 77.5 331.0 70.2 344.1 69.3 339.5 73.0 341.8 89.3 327.8 100.7 322.9 99.9 319.4 104.8 321.7 110.3 327.7 111.3 328.3 117.8 333.3 119.1 329.2 120.2 327.5 117.4 320.5 122.3 318.9 126.5 319.8 135.7 332.2 143.4 330.7 153.0 324.1 153.5 324.2 160.1 312.1 165.5 310.9 173.2 308.2 175.4 291.1 167.9 292.3 166.0 281.2 158.3 280.7 152.6 284.0 152.2 283.1 149.1 285.2 148.0 279.6 142.2 283.2 138.0 282.0 136.1 275.7 138.0 275.0 142.3 270.4 141.9 269.6 145.4 264.1 145.0 258.8 152.0 254.5 147.4 252.1 154.7 248.9 154.1 240.6 149.0 238.0 141.0 223.6 123.5 201.5 120.0 193.0 107.4 202.4 106.2 203.8 103.5 200.0 96.2 195.6 97.1 192.2 91.7 194.0 83.7 198.4 82.8 201.6 77.3 195.7 81.9 194.5 79.9 194.7 82.5 193.2 79.6 181.6 81.5 177.3 77.7 178.9 72.6 184.2 72.7 179.2 69.7 196.0 67.8 206.3 60.6 203.6 55.7 198.8 61.8 192.1 61.0 192.0 58.1 196.4 55.0 197.6 48.2 192.5 47.8 194.4 45.9 193.2 42.7 184.3 34.0 184.7 29.8 178.0 17.8 166.6 21.8 159.6 19.0 161.1 20.1 159.0 21.4 158.9 32.7 157.6 31.7 158.8 15.3 166.0 1.3ZM184.6 51.9 183.3 58.4 177.9 56.7 184.6 51.9ZM174.6 31.3 178.3 35.0 176.4 39.2 165.3 36.5 166.9 32.6 174.6 31.3ZM175.4 49.6 176.8 51.8 172.6 50.2 175.4 49.6ZM170.5 60.3 173.7 64.8 170.1 66.0 168.8 62.8 170.5 60.3ZM170.6 53.1 172.4 54.7 170.2 58.3 170.6 53.1ZM170.9 49.1 172.1 51.8 169.1 51.8 170.9 49.1ZM162.7 35.9 161.5 38.2 165.2 46.2 158.5 40.5 162.7 35.9Z", "Thüringen": "M320.8 354.8 331.7 358.8 328.2 361.5 332.5 366.2 331.7 370.0 334.0 372.0 333.6 377.0 336.3 377.4 335.2 378.6 357.0 379.2 361.7 381.9 362.1 386.2 367.1 390.8 359.6 398.9 366.6 402.0 367.8 404.7 365.4 407.0 367.7 411.3 379.5 410.1 385.7 417.4 393.5 415.5 400.5 420.2 399.7 422.1 402.4 424.8 413.8 423.8 416.1 427.6 421.3 419.3 418.2 417.4 420.6 412.1 431.9 412.7 435.0 415.0 435.3 419.6 437.2 418.9 436.4 421.6 441.8 421.7 444.7 429.9 433.5 432.6 430.7 437.9 418.3 440.2 421.0 444.5 417.0 448.2 419.4 448.2 419.3 452.8 422.8 455.9 419.5 459.4 414.9 458.6 414.4 461.3 411.7 459.8 410.8 464.8 412.3 465.2 405.2 467.9 402.9 466.8 403.1 460.2 400.3 460.6 396.7 467.6 393.2 469.2 399.2 475.3 397.7 475.7 398.4 478.4 394.2 479.6 396.8 481.2 392.5 483.9 389.4 485.1 386.8 482.0 369.9 487.1 367.2 480.9 364.9 482.1 363.0 479.0 363.8 472.4 358.5 471.7 356.9 475.1 351.9 476.3 354.1 487.9 352.2 498.3 345.0 496.1 346.1 491.8 343.1 488.0 338.6 490.3 335.6 488.0 335.6 490.3 331.8 485.3 327.6 485.0 317.1 489.3 317.9 493.1 325.8 497.7 325.8 500.8 318.3 500.1 317.9 505.1 310.7 502.9 309.9 491.6 302.5 489.3 300.2 484.2 296.0 485.0 296.7 481.9 292.1 474.5 278.6 467.2 272.8 472.3 274.4 468.0 272.7 462.1 275.9 461.3 273.4 455.5 267.0 456.1 266.7 460.4 261.9 459.2 266.2 449.2 265.1 446.6 267.4 444.6 267.0 440.4 271.7 439.3 271.6 435.8 274.3 433.9 271.2 430.0 268.8 431.5 269.6 428.4 266.9 429.6 266.8 427.3 274.7 427.3 271.5 423.8 273.0 420.4 283.6 421.6 283.5 417.4 280.0 416.2 281.9 409.6 278.4 407.3 281.5 406.2 284.2 409.7 285.7 403.1 275.2 398.4 274.0 393.0 268.5 392.2 265.3 383.2 273.8 376.4 280.8 377.2 279.6 376.0 283.1 371.8 290.1 370.7 294.3 366.1 295.0 361.1 313.4 364.4 312.1 357.5 320.8 354.8Z"};
+// Wöchentliche Entscheidungen. lean: -1 links, 1 rechts, 0 pragmatisch/ausweichend. bold: wie umstritten (0..1).
+const DILEMMAS = [
+  {q:'Die Schuldenbremse. Der Haushalt hat ein Loch von 30 Milliarden.',topic:'wirtschaft',o:[
+    {t:'Schuldenbremse reformieren, mehr Kredite für Investitionen',lean:-1,bold:.8},
+    {t:'Schuldenbremse halten, bei Sozialausgaben kürzen',lean:1,bold:.9},
+    {t:'Eine Kommission einsetzen, Entscheidung nach der Wahl',lean:0,bold:.3}]},
+  {q:'Wehrpflicht. Die Bundeswehr findet nicht genug Freiwillige.',topic:'migration',o:[
+    {t:'Wehrpflicht zurück, für alle jungen Männer und Frauen',lean:1,bold:.8},
+    {t:'Freiwilligkeit stärken, bessere Bezahlung, keine Pflicht',lean:-1,bold:.5},
+    {t:'Pflicht nur, wenn die Freiwilligenzahlen nicht reichen',lean:0,bold:.3}]},
+  {q:'Rente. Die Beiträge steigen, die Babyboomer gehen.',topic:'soziales',o:[
+    {t:'Renteneintritt schrittweise auf 70 anheben',lean:1,bold:1},
+    {t:'Beamte, Selbstständige und Abgeordnete in die Rentenkasse',lean:-1,bold:.8},
+    {t:'Rentenniveau bis 2035 festschreiben, Finanzierung offen lassen',lean:0,bold:.4}]},
+  {q:'Heizen. Das Gebäudeenergiegesetz ist unpopulär, die Klimaziele gelten.',topic:'klima',o:[
+    {t:'Gesetz verschärfen, dafür Sozialförderung verdoppeln',lean:-1,bold:.8},
+    {t:'Gesetz abschaffen, auf CO₂-Preis setzen',lean:1,bold:.8},
+    {t:'Fristen strecken, Technologieoffenheit betonen',lean:0,bold:.3}]},
+  {q:'Abschiebungen nach Syrien und Afghanistan.',topic:'migration',o:[
+    {t:'Regelmäßige Abschiebeflüge, auch über Drittstaaten',lean:1,bold:.9},
+    {t:'Nur Straftäter, Einzelfallprüfung, keine Flüge in Kriegsgebiete',lean:-1,bold:.6},
+    {t:'Auf eine europäische Lösung verweisen',lean:0,bold:.3}]},
+  {q:'Mindestlohn. Die Kommission ist zerstritten.',topic:'soziales',o:[
+    {t:'Mindestlohn per Gesetz auf 15 Euro',lean:-1,bold:.7},
+    {t:'Bei der Kommission bleiben, keine politische Festlegung',lean:1,bold:.5},
+    {t:'15 Euro als Ziel, aber erst 2028',lean:0,bold:.3}]},
+  {q:'Bürgergeld. Die Sanktionsdebatte läuft wieder.',topic:'soziales',o:[
+    {t:'Totalverweigerern die Leistung komplett streichen',lean:1,bold:.9},
+    {t:'Sanktionen begrenzen, mehr Qualifizierung',lean:-1,bold:.6},
+    {t:'Umbenennen und Verwaltung vereinfachen',lean:0,bold:.3}]},
+  {q:'Vermögensteuer. Die Länder fordern neue Einnahmen.',topic:'wirtschaft',o:[
+    {t:'Vermögensteuer ab 2 Millionen wieder erheben',lean:-1,bold:.9},
+    {t:'Ablehnen, stattdessen Unternehmenssteuern senken',lean:1,bold:.8},
+    {t:'Erst Steuerflucht bekämpfen, dann weitersehen',lean:0,bold:.3}]},
+  {q:'Grenzkontrollen. Die Nachbarn beschweren sich, Pendler stehen im Stau.',topic:'migration',o:[
+    {t:'Dauerhaft kontrollieren, Zurückweisungen an der Grenze',lean:1,bold:.8},
+    {t:'Kontrollen beenden, Schengen wiederherstellen',lean:-1,bold:.8},
+    {t:'Verlängern, aber Pendlerspuren einrichten',lean:0,bold:.3}]},
+  {q:'Tempolimit auf Autobahnen.',topic:'klima',o:[
+    {t:'130 km/h einführen',lean:-1,bold:.6},
+    {t:'Ablehnen, freie Fahrt bleibt',lean:1,bold:.6},
+    {t:'Pilotprojekt auf einzelnen Strecken',lean:0,bold:.2}]},
+  {q:'Mieten. In den Großstädten explodieren die Angebotsmieten.',topic:'soziales',o:[
+    {t:'Mietendeckel bundesweit für fünf Jahre',lean:-1,bold:.9},
+    {t:'Bauen statt deckeln: Vorschriften streichen, Förderung für Investoren',lean:1,bold:.7},
+    {t:'Mietpreisbremse verlängern, sonst nichts ändern',lean:0,bold:.3}]},
+  {q:'Atomkraft. Industrie und Teile des bürgerlichen Lagers fordern den Wiedereinstieg.',topic:'klima',o:[
+    {t:'Neue Reaktoren prüfen, Ausstieg war ein Fehler',lean:1,bold:.8},
+    {t:'Nein, Erneuerbare und Speicher ausbauen',lean:-1,bold:.6},
+    {t:'Forschung an kleinen Reaktoren fördern, sonst abwarten',lean:0,bold:.3}]},
+  {q:'Industriestrompreis. Chemie und Stahl drohen mit Abwanderung.',topic:'wirtschaft',o:[
+    {t:'Subventionierter Strompreis für die Industrie, 10 Milliarden',lean:-1,bold:.6},
+    {t:'Keine Subventionen, Netzentgelte und Steuern für alle senken',lean:1,bold:.6},
+    {t:'Zeitlich befristet, nur mit Standortgarantie',lean:0,bold:.3}]},
+];
+const THEMES = [
+  {id:'wirtschaft',name:'Wirtschaft und Arbeit'},
+  {id:'klima',name:'Klima und Energie'},
+  {id:'migration',name:'Migration und Sicherheit'},
+  {id:'soziales',name:'Soziales und Rente'},
+];
+const ACTIONS = [
+  {id:'rally',name:'Kundgebung',cost:1.5,land:true,desc:'+1,8 Punkte im gewählten Land.'},
+  {id:'poster',name:'Plakatierung',cost:0.8,land:true,desc:'+0,9 Punkte im gewählten Land.'},
+  {id:'tv',name:'Fernsehspots',cost:4.0,land:false,desc:'+0,5 Punkte in allen Ländern.'},
+  {id:'door',name:'Haustürwahlkampf',cost:2.0,land:false,desc:'+1,2 Punkte in den drei stärksten eigenen Ländern.'},
+  {id:'fund',name:'Spendendinner',cost:0,land:false,desc:'+3 Mio € in die Kasse, dafür 0,3 Punkte überall (Elitenvorwurf).'},
+];
+const EVENTS = [
+  {t:'Insolvenzwelle im Mittelstand. Wirtschaft beherrscht die Schlagzeilen.',theme:'wirtschaft',k:1.4},
+  {t:'Hochwasser in Süddeutschland. Klimapolitik rückt in den Vordergrund.',theme:'klima',k:1.4},
+  {t:'Ein Gewaltverbrechen löst eine Debatte über Migration aus.',theme:'migration',k:1.6},
+  {t:'Die Rentenkommission legt düstere Zahlen vor.',theme:'soziales',k:1.4},
+  {t:'Spendenaffäre: {p} gerät unter Druck.',hit:-2.2},
+  {t:'Triell: {p} wird von den Zuschauern zum Sieger erklärt.',hit:2.0},
+  {t:'Ein Spitzenkandidat von {p} verplappert sich im Interview.',hit:-1.4},
+  {t:'Großer Verband spricht Wahlempfehlung für {p} aus.',hit:1.2},
+  {t:'Ruhige Woche. Die Umfragen bewegen sich kaum.'},
+];
+
+// ---------- Nachrichten aus der echten Welt ----------
+// Große Ereignisse, zu denen eine Stellungnahme erwartet wird
+const EVENT_TYPES={
+  protest:{name:'Proteste',kw:['protest','demonstr','aufstand','unruhen','generalstreik','blockade','krawall','gelbwesten','massenprotest']},
+  gewalt:{name:'Gewalttat',kw:['anschlag','attentat','amok','messerangriff','terror','explosion','schüsse','angriff auf','getötet','tote']},
+  katastrophe:{name:'Katastrophe',kw:['hochwasser','erdbeben','waldbrand','unwetter','überschwemm','sturmflut','zugunglück','absturz','brand','dammbruch']},
+  skandal:{name:'Skandal',kw:['rücktritt','affäre','skandal','korruption','ermittl','razzia','untersuchungsausschuss','vorwürfe','bestechung','plagiat']},
+  streik:{name:'Arbeitskampf',kw:['streik','warnstreik','tarif','aussperrung','stellenabbau','werksschließung','massenentlassung','insolvenz']},
+  krieg:{name:'Außenpolitik',kw:['krieg','waffen','nato','ukraine','russland','israel','gaza','iran','china','taiwan','sanktion','zölle','trump','gipfel']},
+};
+function eventType(title){
+  const t=' '+title.toLowerCase().replace(/[^a-zäöüß0-9]+/g,' ')+' ';
+  for(const k of Object.keys(EVENT_TYPES)) if(EVENT_TYPES[k].kw.some(w=>t.includes(' '+w)||t.includes(w+' '))) return k;
+  return null;
+}
+// Falls keine passende Meldung da ist: erfundene Weltlage (gekennzeichnet)
+const EVENT_ARCHIVE=[
+  {t:'Frankreich: Hunderttausende protestieren gegen Rentenreform, Ausschreitungen in Paris',etype:'protest',th:'soziales'},
+  {t:'Messerangriff in einer Regionalbahn, drei Verletzte, Täter festgenommen',etype:'gewalt',th:'migration'},
+  {t:'Starkregen: Dammbruch in Niederbayern, Tausende evakuiert',etype:'katastrophe',th:'klima'},
+  {t:'Rücktrittsforderungen nach Beraterverträgen im Verkehrsministerium',etype:'skandal',th:'wirtschaft'},
+  {t:'Autozulieferer kündigt Schließung von zwei Werken an, 4.000 Stellen betroffen',etype:'streik',th:'wirtschaft'},
+  {t:'US-Regierung kündigt neue Zölle auf europäische Autos an',etype:'krieg',th:'wirtschaft'},
+  {t:'Generalstreik in Italien legt Flughäfen und Bahn lahm',etype:'protest',th:'soziales'},
+  {t:'Brandanschlag auf Flüchtlingsunterkunft, keine Verletzten',etype:'gewalt',th:'migration'},
+];
+const KEYW={
+  wirtschaft:['wirtschaft','konjunktur','inflation','arbeitslos','insolven','industrie','haushalt','steuer','zoll','export','preise','tarif','streik','konzern','rezession','wachstum','börse','autobau','mittelstand','schulden','bundesbank','ezb','handel'],
+  klima:['klima','energie','hochwasser','hitze','dürre','sturm','co2','co₂','heizung','strom','gas','wind','solar','unwetter','waldbrand','emission','erderwärmung','kohle','atom','verkehrswende','bahn'],
+  migration:['migration','flücht','asyl','grenze','abschieb','messer','anschlag','polizei','kriminal','sicherheit','terror','einwander','gewalt','bundeswehr','verteidigung','nato','ukraine','krieg','angriff','festnahme'],
+  soziales:['rente','pflege','bürgergeld','miete','wohn','kita','gesundheit','krankenhaus','sozial','armut','kinder','schule','lohn','krankenkasse','bildung','familie','mindestlohn','arzt','pflegekräfte','wohnungsnot'],
+};
+const NEWS_SOURCES=[
+  {name:'tagesschau.de',url:'https://www.tagesschau.de/api2u/news/?ressort=inland',parse:j=>(j.news||[]).filter(n=>n.title).map(n=>({t:n.title,u:n.detailweb||n.shareURL||'',d:n.date}))},
+  {name:'tagesschau.de',url:'https://www.tagesschau.de/api2u/homepage/',parse:j=>(j.news||[]).filter(n=>n.title).map(n=>({t:n.title,u:n.detailweb||n.shareURL||'',d:n.date}))},
+];
+// Wenn keine Verbindung möglich ist (z. B. Offline), läuft das Spiel mit einem erfundenen Archiv.
+const NEWS_ARCHIVE=[
+  'Konjunkturprognose gesenkt: Institute erwarten Stagnation','Zahl der Firmenpleiten auf Zehnjahreshoch','Pflegebeiträge steigen zum Jahreswechsel erneut',
+  'Starkregen setzt Innenstädte unter Wasser','Rentenkommission: Beitragssatz muss steigen','Streit um Grenzkontrollen zwischen Bund und Ländern',
+  'Mieten in Großstädten klettern weiter','Tarifstreit bei der Bahn eskaliert','Wärmepumpen-Förderung wird neu geordnet','Innenministerkonferenz berät über Abschiebungen',
+  'Kitaplätze: Hunderttausende fehlen weiter','Autozulieferer streicht Tausende Stellen','Hitzewelle: Kommunen rufen Notfallpläne aus','Bürgergeld: Koalition streitet über Sanktionen',
+];
+function classify(title){
+  const t=' '+title.toLowerCase().replace(/[^a-zäöüß0-9₂]+/g,' ')+' ';
+  let best=null,bs=0;
+  for(const th of Object.keys(KEYW)){ const s=KEYW[th].reduce((a,k)=>a+(t.includes(' '+k)?1:0),0); if(s>bs){bs=s;best=th;} }
+  return best;
+}
+async function fetchJson(url,ms){
+  const c=new AbortController(); const to=setTimeout(()=>c.abort(),ms);
+  try{ const r=await fetch(url,{signal:c.signal}); if(!r.ok) throw 0; return await r.json(); } finally{ clearTimeout(to); }
+}
+async function loadNews(){
+  let items=null, source='', live=false;
+  if(STORE===RemoteStore){ try{ const j=await fetchJson('api.php?news=1',8000); if(j&&j.news&&j.news.length){ items=NEWS_SOURCES[0].parse(j); source='tagesschau.de (über Server)'; live=true; } }catch(e){} }
+  if(!items||!items.length) for(const s of NEWS_SOURCES){
+    try{ items=s.parse(await fetchJson(s.url,6000)); source=s.name; live=true; if(items.length) break; }catch(e){}
+    try{ const j=await fetchJson('https://api.allorigins.win/raw?url='+encodeURIComponent(s.url),8000); items=s.parse(j); source=s.name+' (über Proxy)'; live=true; if(items.length) break; }catch(e){}
+  }
+  if(!items||!items.length){
+    const pool=NEWS_ARCHIVE.slice().sort(()=>Math.random()-0.5).slice(0,8);
+    items=pool.map(t=>({t,u:'',d:''})); source='Archiv, keine Verbindung zu Live-Nachrichten'; live=false;
+  }
+  items=items.slice(0,40);
+  const counts={wirtschaft:0,klima:0,migration:0,soziales:0};
+  const tagged=items.map(n=>{ const th=classify(n.t); if(th) counts[th]++; return Object.assign({th},n); });
+  const tot=Object.values(counts).reduce((a,b)=>a+b,0);
+  const agenda={}; Object.keys(counts).forEach(k=>agenda[k]=(counts[k]+1)/(tot+4)); // Anteil, glättet
+  const sal={}; Object.keys(agenda).forEach(k=>sal[k]=Math.max(0.5,Math.min(2.2,0.5+agenda[k]*2)));
+  const show=tagged.filter(n=>n.th).slice(0,6); while(show.length<6&&tagged[show.length]) { const n=tagged[show.length]; if(!show.includes(n)) show.push(n); else break; }
+  const events=tagged.map(n=>Object.assign({etype:eventType(n.t)},n)).filter(n=>n.etype);
+  return {headlines:show, agenda, sal, source, live, events, at:new Date().toISOString()};
+}
+let NEWS=null, newsLoading=false;
+async function refreshNews(){
+  if(newsLoading) return; newsLoading=true;
+  try{ NEWS=await loadNews(); if(S){ S.sal=NEWS.sal; addLog(`Nachrichtenlage ausgewertet (${NEWS.source}). Schwerpunkt der Woche: ${THEMES.find(t=>t.id===hotTheme()).name}.`); } }
+  finally{ newsLoading=false; if(S){ renderGame(); autosave(); } }
+}
+function hotTheme(){ const s=(S&&S.sal)||{}; return Object.keys(s).sort((a,b)=>s[b]-s[a])[0]||'wirtschaft'; }
+function salOf(t){ return (S&&S.sal&&S.sal[t])||1; }
+
+// ---------- Stellungnahmen ----------
+const SEGMENTS=[{id:'basis',name:'Eigene Basis'},{id:'mitte',name:'Mitte'},{id:'protest',name:'Protestwähler'},{id:'jung',name:'Unter 30'},{id:'alt',name:'Über 60'}];
+const OST=['SN','BB','ST','TH','MV'], STADT=['BE','HH','HB'];
+function segMix(l){ const ost=OST.includes(l.k), stadt=STADT.includes(l.k)||l.k==='BE'; const basis=.34, protest=ost?.22:.10, jung=stadt?.18:(ost?.09:.11), mitte=ost?.22:.32; return {basis,mitte,protest,jung,alt:Math.max(.05,1-basis-protest-jung-mitte)}; }
+const STANCES=[
+  {id:'solidarisch',name:'Solidarisch',lean:-1,base:{basis:.3,mitte:.2,protest:.1,jung:.4,alt:0}},
+  {id:'ordnung',name:'Ordnung',lean:1,base:{basis:.3,mitte:.3,protest:.4,jung:-.3,alt:.4}},
+  {id:'abgrenzung',name:'Abgrenzung',lean:.3,base:{basis:-.1,mitte:.1,protest:-.2,jung:-.2,alt:.1}},
+  {id:'umlenken',name:'Eigenes Thema',lean:0,base:{basis:.2,mitte:0,protest:-.1,jung:0,alt:.1}},
+  {id:'angriff',name:'Angriff',lean:0,base:{basis:.4,mitte:-.3,protest:.3,jung:0,alt:-.1}},
+  {id:'schweigen',name:'Kein Kommentar',lean:0,base:{basis:-.2,mitte:-.1,protest:-.3,jung:-.2,alt:0}},
+];
+const TYPE_ADJ={
+  katastrophe:{angriff:{basis:-.3,mitte:-.5,protest:-.2,jung:-.3,alt:-.4},ordnung:{mitte:-.2,jung:-.2},solidarisch:{mitte:.3,alt:.3}},
+  gewalt:{ordnung:{mitte:.2,alt:.2},solidarisch:{mitte:.2},abgrenzung:{mitte:-.2,protest:-.3}},
+  protest:{ordnung:{jung:-.2},solidarisch:{alt:-.2},abgrenzung:{mitte:.1}},
+  skandal:{angriff:{mitte:.2,protest:.3},schweigen:{mitte:-.2,protest:-.3},solidarisch:{mitte:-.3,protest:-.3}},
+  streik:{solidarisch:{basis:.1,alt:.1},ordnung:{jung:-.1}},
+  krieg:{abgrenzung:{protest:.4,jung:.1,alt:-.1},solidarisch:{alt:.2,protest:-.3},angriff:{mitte:-.2}},
+};
+function stanceText(stance,etype,gov){
+  const theme=THEMES.find(t=>t.id===ownTheme()).name;
+  const T={
+    solidarisch:{protest:'Die Menschen auf der Straße haben allen Grund zur Wut. Ich stehe an ihrer Seite.',gewalt:'Mein Mitgefühl gilt den Opfern und ihren Familien. Jetzt ist nicht die Stunde für Schuldzuweisungen.',katastrophe:'Wir lassen die Betroffenen nicht allein. Hilfe muss schnell und unbürokratisch kommen.',skandal:'Wer Verantwortung trägt, muss sie jetzt übernehmen, und zwar persönlich.',streik:'Die Beschäftigten kämpfen für faire Löhne. Das verdient Respekt, nicht Belehrung.',krieg:'Unsere Solidarität gilt den Angegriffenen, ohne Wenn und Aber.'},
+    ordnung:{protest:'Protest ja, Gewalt nein. Der Rechtsstaat muss sich durchsetzen.',gewalt:'Wer unsere Sicherheit angreift, muss die volle Härte des Gesetzes spüren.',katastrophe:'Jetzt zählt Organisation: klare Zuständigkeiten, kein Chaos, kein Kompetenzgerangel.',skandal:'Die Behörden sollen ermitteln, ohne Ansehen der Person. Vorverurteilungen helfen niemandem.',streik:'Streikrecht ja, aber die Verhältnismäßigkeit muss gewahrt bleiben.',krieg:'Stärke ist die einzige Sprache, die hier verstanden wird. Wir müssen wehrhaft sein.'},
+    abgrenzung:{protest:'Das ist eine innere Angelegenheit des Landes. Wir sollten uns nicht einmischen.',gewalt:'Erst die Fakten abwarten, dann urteilen. Spekulationen helfen jetzt nicht.',katastrophe:'Die zuständigen Stellen arbeiten. Ich halte mich mit Bewertungen zurück.',skandal:'Das ist Sache der Justiz, nicht der Politik.',streik:'Das ist Sache der Tarifpartner. Die Politik hält sich raus.',krieg:'Deutschland sollte sich nicht hineinziehen lassen. Unsere Interessen zuerst.'},
+    umlenken:{_:`Das zeigt, warum wir beim Thema ${theme} endlich handeln müssen. Dafür stehe ich.`},
+    angriff:{_:gov?'Die Opposition nutzt die Lage schamlos aus, statt zu helfen.':'Diese Regierung hat das kommen sehen und nichts getan.'},
+    schweigen:{_:'Kein Kommentar.'},
+  }[stance];
+  return T[etype]||T._;
+}
+function ownTheme(){ const c=PARTIES[S.player].comp; return Object.keys(c).sort((a,b)=>c[b]-c[a])[0]; }
+function ensureStatement(){
+  const key=(S.phase&&S.phase!=='campaign')?'L'+S.gov.legis+'-'+S.gov.week:'C'+(S.gov?S.gov.legis||0:0)+'-'+S.week;
+  if(S.stmt&&S.stmt.key===key) return;
+  if(S.stmt&&S.stmt.key!==key&&!S.stmt.done){ /* Woche vorbei, unbeantwortet */ }
+  S.stmtUsed=S.stmtUsed||[];
+  let ev=null;
+  if(NEWS&&NEWS.live&&NEWS.events){ ev=NEWS.events.find(e=>!S.stmtUsed.includes(e.t)); }
+  if(!ev){ const pool=EVENT_ARCHIVE.filter(e=>!S.stmtUsed.includes(e.t)); ev=pool.length?pool[Math.floor(Math.random()*pool.length)]:null; if(ev) ev=Object.assign({archiv:true},ev); }
+  if(!ev){ S.stmt={key,done:true}; return; }
+  S.stmtUsed.push(ev.t);
+  S.stmt={key,done:false,t:ev.t,u:ev.u||'',etype:ev.etype,th:ev.th||classify(ev.t)||ownTheme(),archiv:!!ev.archiv};
+}
+function reactTo(stanceId,etype){
+  const me=PARTIES[S.player], st=STANCES.find(s=>s.id===stanceId), sgn=me.pos>=0?1:-1, far=Math.abs(me.pos)>=2.5;
+  const r={}; SEGMENTS.forEach(s=>{ r[s.id]=st.base[s.id]+((TYPE_ADJ[etype]||{})[stanceId]||{})[s.id]||0; });
+  // Lager: passt die Haltung zur eigenen Partei?
+  if(st.lean){ r.basis+=0.5*st.lean*sgn; r.mitte+=Math.abs(me.pos)<1?0.1:-0.1*Math.abs(st.lean); if(far) r.protest+=0.3*st.lean*sgn; }
+  if(stanceId==='umlenken'){ const c=me.comp[ownTheme()]; Object.keys(r).forEach(k=>r[k]+=(c-0.5)*0.5); if(S.stmt&&S.stmt.th!==ownTheme()) r.mitte-=0.2; }
+  if(stanceId==='angriff'){ const inGov=S.phase==='govern'||S.phase==='junior'||(S.phase==='campaign'&&me.gov); if(inGov) r.mitte-=0.2; if(far) r.protest+=0.3; }
+  return r;
+}
+function applyStatement(stanceId){
+  const me=S.player, ev=S.stmt, sal=salOf(ev.th), r=reactTo(stanceId,ev.etype);
+  // Wirkung je Land nach Wählermix
+  LAENDER.forEach((l,i)=>{ const m=segMix(l); let d=0; SEGMENTS.forEach(s=>d+=m[s.id]*r[s.id]); S.sup[i][me]+=d*1.5*sal; });
+  // Profil und Glaubwürdigkeit
+  S.profile=S.profile||{}; S.profile[stanceId]=(S.profile[stanceId]||0)+1;
+  const st=STANCES.find(s=>s.id===stanceId); let note='';
+  const leanHist=Object.keys(S.profile).reduce((a,k)=>{ const s=STANCES.find(x=>x.id===k); return a+(s.lean*S.profile[k]); },0)-st.lean;
+  if(st.lean&&Math.sign(leanHist)===-Math.sign(st.lean)&&Math.abs(leanHist)>=2){ S.pop[me]-=3; LAENDER.forEach((l,i)=>S.sup[i][me]-=0.25); note=' Die Kommentatoren sprechen von einem Umfaller: Bisher klangen Sie anders. Glaubwürdigkeit leidet.'; }
+  else if(st.lean&&(S.profile[stanceId]||0)>=3){ S.pop[me]+=1; note=' Konsequent. Man weiß, wofür Sie stehen.'; }
+  if(stanceId==='schweigen'&&(S.profile.schweigen||0)>=3){ S.pop[me]-=2; note=' Zum dritten Mal kein Kommentar. Niemand weiß, wofür Sie stehen.'; }
+  const best=SEGMENTS.slice().sort((a,b)=>r[b.id]-r[a.id])[0], worst=SEGMENTS.slice().sort((a,b)=>r[a.id]-r[b.id])[0];
+  ev.done=true; ev.stance=stanceId; ev.r=r;
+  addLog(`Stellungnahme zu „${ev.t}“: ${st.name}. Kommt bei ${best.name} an (${r[best.id]>=0?'+':''}${r[best.id].toFixed(1)}), ${worst.name} ${r[worst.id]<0?'reagiert ablehnend':'bleibt kühl'} (${r[worst.id].toFixed(1)}).${note}`,'ev');
+  renderGame(); autosave();
+}
+function renderStatement(){
+  const ev=S.stmt; if(!ev||!ev.t) { $('stmt').innerHTML=''; return; }
+  const gov=S.phase==='govern'||S.phase==='junior'||(S.phase==='campaign'&&PARTIES[S.player].gov);
+  if(!ev.done){
+    $('stmt').innerHTML=`<div class="einladung stmt"><div class="ts">Stellungnahme gefordert · ${EVENT_TYPES[ev.etype].name}${ev.archiv?' · Archiv':''}</div>
+      <div class="q">${ev.u?`<a href="${ev.u}" target="_blank" rel="noopener">${ev.t}</a>`:ev.t}</div>
+      <div class="ts">Die Presse wartet. Sechs Möglichkeiten, jede hat ein Publikum. Nicht zu antworten ist auch eine Antwort.</div>
+      <div class="dopts">${STANCES.map(s=>`<button class="sm law ${s.id==='schweigen'?'':'fill'}" data-st="${s.id}"><span>${stanceText(s.id,ev.etype,gov)}</span><small>${s.name}</small></button>`).join('')}</div></div>`;
+    $('stmt').querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>applyStatement(b.dataset.st));
+  } else if(ev.r){
+    const st=STANCES.find(s=>s.id===ev.stance);
+    $('stmt').innerHTML=`<div class="reso"><div class="ts">Resonanz auf Ihre Stellungnahme (${st.name}) zu „${ev.t.slice(0,70)}${ev.t.length>70?'…':''}“</div>
+      <div class="resogrid">${SEGMENTS.map(s=>{ const v=ev.r[s.id]; return `<div class="rs2"><span>${s.name}</span><span class="bar"><i class="${v<0?'neg':''}" style="width:${Math.min(100,Math.abs(v)*90)}%"></i></span><b class="num ${v<0?'neg':''}">${v>=0?'+':''}${v.toFixed(1)}</b></div>`; }).join('')}</div>
+      <div class="ts">Osten und Städte gewichten Protest- und junge Wähler stärker, deshalb fällt die Wirkung regional verschieden aus (siehe Karte).</div></div>`;
+  }
+  const prof=S.profile||{}; const keys=Object.keys(prof);
+  $('profil').innerHTML=keys.length?`<span class="label">Ihr Profil</span> ${STANCES.filter(s=>prof[s.id]).sort((a,b)=>prof[b.id]-prof[a.id]).map(s=>`${s.name} ${prof[s.id]}`).join(' · ')}`:'';
+}
+
+// ---------- Ansichten ----------
+const VIEWS=['cockpit','karte','koalitionen','sondierungen','tagebuch'];
+function showView(v){
+  if(!VIEWS.includes(v)) v='cockpit';
+  document.querySelectorAll('.view').forEach(el=>el.hidden=el.dataset.view!==v);
+  document.querySelectorAll('.tabs a').forEach(a=>a.classList.toggle('on',a.dataset.view===v));
+  window.scrollTo({top:0});
+}
+document.addEventListener('click',e=>{ const a=e.target.closest('.tabs a'); if(a){ e.preventDefault(); showView(a.dataset.view); history.replaceState&&history.replaceState(null,'','#'+a.dataset.view); } });
+
+const $=id=>document.getElementById(id);
+// ---------- Konten und Spielstände ----------
+// Zwei Backends: api.php (SQLite, geräteübergreifend) wenn vorhanden, sonst der Browser-Speicher dieses Geräts.
+async function sha(str){
+  try{ const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+  catch(e){ let h=0x811c9dc5; for(const c of str){ h^=c.charCodeAt(0); h=Math.imul(h,0x01000193)>>>0; } return 'fnv'+h.toString(16); }
+}
+const LocalStore={
+  kind:'lokal',
+  _get(k,d){ try{ const v=localStorage.getItem('kr.'+k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+  _set(k,v){ try{ localStorage.setItem('kr.'+k,JSON.stringify(v)); return true; }catch(e){ return false; } },
+  async register(u,p){ const acc=this._get('acc',{}); if(acc[u]) throw new Error('Benutzername ist vergeben.'); acc[u]={salt:Math.random().toString(36).slice(2),at:Date.now()}; acc[u].hash=await sha(acc[u].salt+p); if(!this._set('acc',acc)) throw new Error('Speichern im Browser nicht möglich (privater Modus?).'); return this.login(u,p); },
+  async login(u,p){ const acc=this._get('acc',{}); const a=acc[u]; if(!a) throw new Error('Konto nicht gefunden.'); if(a.hash!==await sha(a.salt+p)) throw new Error('Passwort falsch.'); this._set('session',u); return u; },
+  async session(){ return this._get('session',null); },
+  async logout(){ this._set('session',null); },
+  async save(u,blob){ return this._set('save.'+u,{blob,at:Date.now()}); },
+  async load(u){ return this._get('save.'+u,null); },
+  async clear(u){ try{ localStorage.removeItem('kr.save.'+u); }catch(e){} },
+};
+const RemoteStore={
+  kind:'Server',
+  token:null,
+  async call(action,data){
+    const r=await fetch('api.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({action,token:this.token},data||{}))});
+    const j=await r.json(); if(!j.ok) throw new Error(j.error||'Serverfehler'); return j;
+  },
+  async register(u,p){ const j=await this.call('register',{user:u,pass:p}); this.token=j.token; try{localStorage.setItem('kr.token',j.token);}catch(e){} return j.user; },
+  async login(u,p){ const j=await this.call('login',{user:u,pass:p}); this.token=j.token; try{localStorage.setItem('kr.token',j.token);}catch(e){} return j.user; },
+  async session(){ try{ this.token=localStorage.getItem('kr.token'); }catch(e){} if(!this.token) return null; try{ return (await this.call('me')).user; }catch(e){ return null; } },
+  async logout(){ try{ await this.call('logout'); }catch(e){} this.token=null; try{localStorage.removeItem('kr.token');}catch(e){} },
+  async save(u,blob){ await this.call('save',{blob}); return true; },
+  async load(u){ const j=await this.call('load'); return j.save||null; },
+  async clear(u){ await this.call('clear'); },
+};
+let STORE=LocalStore, USER=null, saveTimer=null;
+async function pickStore(){
+  try{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),2500); const r=await fetch('api.php?ping=1',{signal:c.signal}); clearTimeout(t); const j=await r.json(); if(j&&j.ok&&j.service==='kanzlerrennen') STORE=RemoteStore; }catch(e){}
+  $('aMode').textContent=STORE===RemoteStore?'Konten werden auf dem Server gespeichert; Sie können von jedem Gerät weiterspielen.':'Kein Server gefunden: Konto und Spielstand bleiben in diesem Browser auf diesem Gerät. Zum geräteübergreifenden Spielen die Datei api.php mit hochladen.';
+}
+function snapshot(){ return S?{S,parties:PARTIES,cand:CAND,person:PERSON,news:NEWS,finished:!!S.finished,v:1}:null; }
+function autosave(){
+  if(!USER||!S) return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{ try{ await STORE.save(USER,snapshot()); markSaved(); }catch(e){ $('acctName').innerHTML=`<b>${USER}</b> · Speichern fehlgeschlagen`; } },400);
+}
+function markSaved(){ const d=new Date(); $('acctName').innerHTML=`<b>${USER}</b> <span class="saved">gespeichert ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</span>`; }
+function restoreBlob(b){
+  PARTIES.length=0; b.parties.forEach(p=>PARTIES.push(p)); CAND.length=0; b.cand.forEach(c=>CAND.push(c));
+  if(PARTIES.length>BASE_PARTIES.length){ LAENDER.forEach(l=>{ while(l.base.length<PARTIES.length) l.base.push(4); }); }
+  PERSON=b.person||PERSON; NEWS=b.news||NEWS; S=b.S;
+}
+function enterGame(){
+  $('auth').hidden=true; $('resume').hidden=true; $('setup').hidden=true;
+  $('verhandlung').hidden=true;
+  if(S.finished){ $('game').hidden=true; $('result').hidden=false; electionShow(S.finished); }
+  else { $('result').hidden=true; $('game').hidden=false; showView('cockpit'); renderGame(); if(!NEWS) refreshNews(); }
+}
+async function afterLogin(u){
+  USER=u; $('acct').hidden=false; $('acctName').innerHTML=`<b>${u}</b>`; $('auth').hidden=true;
+  let sv=null; try{ sv=await STORE.load(u); }catch(e){}
+  if(sv&&sv.blob&&sv.blob.S){
+    const b=sv.blob, d=new Date(sv.at||Date.now());
+    $('resumeInfo').textContent=`${b.person.name} für die ${b.parties[b.S.player].name}, ${b.finished?'Wahl ist gelaufen':'Woche '+b.S.week+' von 8'}. Zuletzt gespeichert ${d.toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'})}.`;
+    $('resume').hidden=false;
+    $('resumeGo').onclick=()=>{ resetData(); restoreBlob(b); enterGame(); };
+    $('resumeNew').onclick=async()=>{ await STORE.clear(u); S=null; resetData(); $('resume').hidden=true; $('setup').hidden=false; showStep(1); };
+  } else { $('setup').hidden=false; showStep(1); }
+}
+async function doAuth(reg){
+  const u=$('aUser').value.trim().toLowerCase(), p=$('aPass').value;
+  if(!/^[a-z0-9_.-]{3,30}$/.test(u)){ $('aMsg').textContent='Benutzername: 3 bis 30 Zeichen, Buchstaben, Ziffern, Punkt, Strich.'; return; }
+  if(p.length<4){ $('aMsg').textContent='Passwort mit mindestens 4 Zeichen.'; return; }
+  $('aMsg').textContent='…';
+  try{ const user=reg?await STORE.register(u,p):await STORE.login(u,p); $('aMsg').textContent=''; $('aPass').value=''; await afterLogin(user); }
+  catch(e){ $('aMsg').textContent=e.message; }
+}
+$('aLogin').onclick=()=>doAuth(false);
+$('aRegister').onclick=()=>doAuth(true);
+$('aPass').onkeydown=e=>{ if(e.key==='Enter') doAuth(false); };
+$('acctOut').onclick=async()=>{ if(S&&USER){ try{ await STORE.save(USER,snapshot()); }catch(e){} } await STORE.logout(); USER=null; S=null; resetData(); ['game','result','setup','resume','acct','verhandlung'].forEach(id=>$(id).hidden=true); $('auth').hidden=false; window.scrollTo(0,0); };
+
+// ---------- Zustand ----------
+let S = null;
+const fmtM = v => v.toFixed(1).replace('.',',')+' Mio €';
+const fmtP = v => v.toFixed(1).replace('.',',')+' %';
+function newState(player){
+  const rel=PARTIES.map((p,i)=>i===player?100:baseRel(player,i));
+  return { player, week:1, budget:24, theme:null, plan:[], selLand:null, pop:CAND.map(c=>c.pop),
+    rel, talksLeft:1, pending:[], excluded:[], statement:null, excludedBy:[], sal:(NEWS&&NEWS.sal)||null,
+    backing:60, dilemma:null, usedDil:[], decided:false, phase:'campaign', gov:null,
+    sup: LAENDER.map(l=>l.base.map(v=>v+(Math.random()*2-1))), log:[] };
+}
+function national(sup){
+  const tot = LAENDER.reduce((a,l)=>a+l.w,0);
+  return PARTIES.map((_,p)=>LAENDER.reduce((a,l,i)=>a+sup[i][p]*l.w,0)/tot);
+}
+// ---------- Spektrum und Beziehungen ----------
+const isFarRight=i=>PARTIES[i].pos>=2.5, isFarLeft=i=>PARTIES[i].pos<=-2.5;
+function baseRel(a,b){
+  if(a===b) return 100;
+  if(isFarRight(a)||isFarRight(b)) return 4;
+  if((isFarLeft(a)&&PARTIES[b].pos>=1)||(isFarLeft(b)&&PARTIES[a].pos>=1)) return 10;
+  const d=Math.abs(PARTIES[a].pos-PARTIES[b].pos);
+  const gov=(PARTIES[a].gov&&PARTIES[b].gov)?22:0; // regieren bereits zusammen, kennen sich
+  return Math.round(Math.max(12,66-d*17+gov));
+}
+function relLabel(r){ return r>=70?'eng':r>=45?'gesprächsbereit':r>=25?'distanziert':'kein Kontakt'; }
+function coalitions(seats,inn){
+  const ins=PARTIES.map((_,i)=>i).filter(i=>inn[i]);
+  const combos=[], n=ins.length;
+  for(let mask=1;mask<(1<<n);mask++){
+    const set=ins.filter((_,j)=>mask&(1<<j));
+    const tot=set.reduce((a,i)=>a+seats[i],0);
+    if(tot<316) continue;
+    if(set.some(i=>tot-seats[i]>=316)) continue;
+    const pos=set.map(i=>PARTIES[i].pos), span=Math.max(...pos)-Math.min(...pos);
+    let ok=true, why='';
+    if(set.some(isFarRight)&&set.length>1){ok=false;why=`Niemand koaliert mit ${set.filter(isFarRight).map(i=>'der '+PARTIES[i].name).join(' und ')}.`;}
+    else if(set.some(isFarLeft)&&set.some(i=>PARTIES[i].pos>=1)){ok=false;why='Unvereinbarkeitsbeschluss: Bürgerunion und Freie Reformer koalieren nicht mit der Linken Liste.';}
+    else if(set.length>3){ok=false;why='Vier Partner gelten als nicht regierungsfähig.';}
+    else if(span>3.5){ok=false;why='Zu große ideologische Spannweite.';}
+    else if(S&&set.includes(S.player)&&set.length>1){
+      const others=set.filter(i=>i!==S.player);
+      const ex=others.find(i=>S.excluded.includes(i)||S.excludedBy.includes(i));
+      const weak=others.filter(i=>S.rel[i]<45);
+      if(ex!==undefined){ok=false;why=`Ausgeschlossen: ${S.excluded.includes(ex)?'Sie haben':'Die '+PARTIES[ex].name+' hat'} eine Zusammenarbeit öffentlich ausgeschlossen.`;}
+      else if(weak.length){ok=false;why=`Keine Gesprächsbasis mit ${weak.map(i=>'der '+PARTIES[i].name).join(' und ')} (Verhältnis ${weak.map(i=>Math.round(S.rel[i])).join(', ')}, nötig 45).`;}
+    }
+    combos.push({set,tot,ok,why,span});
+  }
+  combos.sort((a,b)=>(b.ok-a.ok)||(a.set.length-b.set.length)||(a.span-b.span));
+  return combos;
+}
+function coalHtml(combos,seats,live){
+  return combos.length?combos.map(c=>{
+    const lead=c.set.slice().sort((a,b)=>seats[b]-seats[a])[0];
+    return `<div class="coal ${c.ok?'yes':'no'}"><span class="t">${c.set.map(i=>PARTIES[i].name).join(' · ')}</span><span class="s num">${c.tot} Sitze</span>
+      <span class="bar">${c.set.map(i=>`<i style="width:${seats[i]/c.tot*100}%;background:${PARTIES[i].color}"></i>`).join('')}</span>
+      <span class="w">${c.ok?`${live?'Heute möglich':'Möglich'}. Kanzleramt: ${PARTIES[lead].name}.`:c.why}</span></div>`;
+  }).join('') : `<div class="foot">${live?'Nach heutigem Stand keine Mehrheit ohne Ausgeschlossene.':'Keine Mehrheit möglich. Es kommt zur Neuwahl.'}</div>`;
+}
+function normalize(){
+  S.sup.forEach(row=>{
+    row.forEach((v,i)=>row[i]=Math.max(0.5,v));
+    const s=row.reduce((a,b)=>a+b,0);
+    if(s>94) row.forEach((v,i)=>row[i]=v*94/s);
+  });
+}
+function addLog(text,cls=''){ S.log.unshift({w:S.week,text,cls}); }
+
+// ---------- Einstieg ----------
+function showStep(n){
+  [1,2,3].forEach(k=>{ $('step'+k).hidden=k!==n; $('st'+k).classList.toggle('on',k===n); });
+  $('st3').hidden=n<3;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function readPerson(){
+  PERSON.name=$('pName').value.trim()||'Anna Reuter';
+  PERSON.age=+$('pAge').value||48;
+  PERSON.job=$('pJob').value;
+}
+$('pFoto').onchange=e=>{
+  const f=e.target.files&&e.target.files[0]; if(!f) return;
+  const img=new Image(); const url=URL.createObjectURL(f);
+  img.onload=()=>{ // auf 4:5 beschneiden, 480x600
+    const cv=document.createElement('canvas'); cv.width=480; cv.height=600; const x=cv.getContext('2d');
+    const r=img.width/img.height, R=0.8; let sw,sh,sx,sy;
+    if(r>R){ sh=img.height; sw=sh*R; sx=(img.width-sw)/2; sy=0; } else { sw=img.width; sh=sw/R; sx=0; sy=(img.height-sh)*0.1; }
+    x.drawImage(img,sx,sy,sw,sh,0,0,480,600);
+    PERSON.img=cv.toDataURL('image/jpeg',.85);
+    $('fotoPrev').innerHTML=`<img src="${PERSON.img}" alt="Dein Foto">`;
+    URL.revokeObjectURL(url);
+  };
+  img.src=url;
+};
+$('toStep2').onclick=()=>{ readPerson(); renderPick(); showStep(2); };
+$('back1').onclick=()=>showStep(1);
+$('back2').onclick=()=>showStep(2);
+function renderPick(){
+  $('partyPick').innerHTML = PARTIES.map((p,i)=>`
+    <button class="brow" data-p="${i}" style="--c:${p.color}">
+      <span class="i num">${i+1}</span>
+      <span class="pf">${portrait(i,56)}</span>
+      <span class="name">${p.name} <span class="num" style="font-family:var(--narrow);color:var(--ink-2);font-weight:500">${fmtP(POLL_NOW[p.key]||0)}</span><small>${p.desc}${p.gov?' Regierungspartei.':''} Kasse: ${p.budget} Mio €.</small></span>
+      <span class="o"><i></i></span>
+    </button>`).join('')+`
+    <button class="brow neu" id="pickNeu" style="--c:transparent">
+      <span class="i num">${PARTIES.length+1}</span>
+      <span class="pf">+</span>
+      <span class="name">Eigene Partei gründen<small>Name, Farbe, Ausrichtung und Kompetenzen selbst festlegen. Start bei etwa vier Prozent.</small></span>
+      <span class="o"><i></i></span>
+    </button>`;
+  $('partyPick').querySelectorAll('button[data-p]').forEach(b=>b.onclick=()=>start(+b.dataset.p));
+  $('pickNeu').onclick=()=>showStep(3);
+}
+// Gründung: Slider-Anzeigen
+const posLabel=v=>v<=-2.5?'links außen':v<-1?'links':v<-0.25?'Mitte-links':v<=0.25?'Mitte':v<=1?'Mitte-rechts':v<2.5?'rechts':'rechts außen';
+function updFound(){
+  $('gPosV').textContent=posLabel(+$('gPos').value);
+  const ids=['cw','ck','cm','cs']; let sum=0;
+  ids.forEach(id=>{ const v=+$(id).value; sum+=v; $(id+'V').textContent=v; });
+  const rest=240-sum;
+  $('gRest').textContent=rest===0?'(verteilt)':rest>0?`(noch ${rest})`:`(${-rest} zu viel)`;
+  $('gRest').style.color=rest<0?'var(--bad)':'';
+  $('found').disabled=rest<0;
+}
+['gPos','cw','ck','cm','cs'].forEach(id=>$(id).oninput=updFound);
+$('found').onclick=()=>{
+  const name=$('gName').value.trim()||'Neue Mitte';
+  const id=($('gKurz').value.trim()||name.split(/\s+/).map(w=>w[0]).join('').slice(0,3)).toUpperCase();
+  const comp={wirtschaft:+$('cw').value/100,klima:+$('ck').value/100,migration:+$('cm').value/100,soziales:+$('cs').value/100};
+  const idx=foundParty({name,id,color:$('gColor').value,pos:+$('gPos').value,comp});
+  start(idx);
+};
+function start(p){
+  if(!PARTIES[p].custom){ CAND[p]={name:PERSON.name,role:PERSON.job==='quereinsteiger'?'Quereinsteiger oder Quereinsteigerin':'Spitzenkandidat oder Spitzenkandidatin',pop:JOBS[PERSON.job].pop,img:PERSON.img,custom:true}; }
+  S=newState(p);
+  S.budget=PARTIES[p].budget||JOBS[PERSON.job].budget;
+  if(PARTIES[p].gov){ S.pop[p]=Math.max(10,S.pop[p]-12); addLog(`Regierungspartei: Nur 10 Prozent sind mit der Koalition zufrieden. Sie starten mit einem Malus auf die eigene Zufriedenheit.`,'ev'); }
+  newDilemma();
+  addLog(`${PERSON.name}, ${PERSON.age}, führt den Wahlkampf der ${PARTIES[p].name}. Acht Wochen bis zur Wahl.`);
+  $('setup').hidden=true; $('result').hidden=true; $('game').hidden=false;
+  showView(location.hash.replace('#','')||'cockpit'); renderGame(); refreshNews(); autosave();
+}
+
+// ---------- Spiel ----------
+function planCost(){ return S.plan.reduce((a,x)=>a+ACTIONS.find(k=>k.id===x.id).cost,0); }
+function renderGame(){
+  const me=PARTIES[S.player], nat=national(S.sup);
+  const inGov=S.phase&&S.phase!=='campaign';
+  $('sWeek').textContent=inGov?`Legislatur ${S.gov.legis}, Woche ${S.gov.week} von ${LEGISLATUR_WOCHEN}`:`${S.week} von 8${S.gov&&S.gov.legis?' · Wahl '+(S.gov.legis+1):''}`;
+  $('sBudget').textContent=fmtM(S.budget-planCost());
+  $('sPoll').textContent=fmtP(nat[S.player]);
+  $('sParty').textContent=me.name;
+  const kd=CAND[S.player], zf=Math.round(S.pop[S.player]);
+  $('kand').innerHTML=`${portrait(S.player,96)}<div><div class="kn">${kd.name}</div><div class="kr">${kd.role} · ${me.name}</div>
+    <div class="zf"><span>Zufrieden</span><span class="bar"><i style="width:${zf}%"></i></span><b class="num">${zf} %</b></div>
+    <div class="zf"><span>Rückhalt</span><span class="bar"><i style="width:${Math.round(S.backing)}%;background:${me.color}"></i></span><b class="num">${Math.round(S.backing)}</b></div>
+    <div class="zq">${S.backing<30?'Die Partei murrt offen. Unter 25 droht ein Aufstand der Landesverbände. ':''}${zf<30?'Unbeliebter als jede Regierung der letzten Jahrzehnte. Jeder Auftritt ist ein Risiko.':zf<40?'Die Mehrheit ist unzufrieden. Auftritte helfen, aber Fehler kosten doppelt.':zf<50?'Gespalten. Ein gutes Triell kann das drehen.':'Beliebt. Setzen Sie auf Auftritte, die Person zieht.'}</div></div>`;
+
+  // Sonntagsfrage
+  const order=nat.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]);
+  const sonst=Math.max(0,100-nat.reduce((a,b)=>a+b,0));
+  const sc=2.3;
+  $('poll').innerHTML=order.map(([v,i])=>`
+    <div class="prow ${i===S.player?'me':''}"><span class="nm">${PARTIES[i].name}</span>
+      <span class="bar"><i style="width:${Math.min(100,v*sc)}%;background:${PARTIES[i].color}"></i><b style="left:${5*sc}%"></b></span>
+      <span class="v num">${fmtP(v)}</span></div>`).join('')+
+    `<div class="prow sonst"><span class="nm">Sonstige</span><span class="bar"><i style="width:${sonst*sc}%;background:${SONST}"></i></span><span class="v num" style="font-weight:400">${fmtP(sonst)}</span></div>`;
+
+  // Nachrichtenlage
+  const hot=hotTheme();
+  if(NEWS){
+    $('agenda').innerHTML=THEMES.map(t=>{ const a=Math.round(((NEWS.agenda[t.id])||0.25)*100); return `<div class="ar"><span>${t.name}</span><span class="bar"><i style="width:${Math.min(100,a*1.6)}%"></i></span><b class="num">${a} %</b></div>`; }).join('');
+    $('news').innerHTML=NEWS.headlines.map(n=>`<a ${n.u?`href="${n.u}" target="_blank" rel="noopener"`:''}><span>${n.t}</span><span class="th ${n.th===hot?'hot':''}">${n.th?THEMES.find(t=>t.id===n.th).name.split(' ')[0]:''}</span></a>`).join('');
+    $('newsSrc').textContent=`Quelle: ${NEWS.source}. Die Verteilung der Schlagzeilen bestimmt, welche Themen diese Woche Wähler bewegen.`;
+  } else {
+    $('agenda').innerHTML=''; $('news').innerHTML='<div class="foot">Nachrichten werden geladen …</div>'; $('newsSrc').textContent='';
+  }
+  ensureStatement(); renderStatement();
+  const stmtOpen=!!(S.stmt&&S.stmt.t&&!S.stmt.done);
+  $('badgeTalks').hidden=S.pending.length===0; $('badgeTalks').textContent=S.pending.length;
+  const dil=S.dilemma!==null&&!S.decided?DILEMMAS[S.dilemma]:null;
+  $('dilemma').innerHTML=dil?`<div class="einladung dil"><div class="q">${dil.q}</div><div class="ts">Thema ${THEMES.find(t=>t.id===dil.topic).name} · ${salOf(dil.topic)>=1.3?'gerade in den Schlagzeilen':'derzeit wenig Aufmerksamkeit'}. Eine Festlegung wird erwartet.</div>
+    <div class="dopts">${dil.o.map((o,oi)=>`<button class="sm ${o.lean===0?'':'fill'}" data-dil="${oi}">${o.t}</button>`).join('')}</div></div>`:'';
+  $('dilemma').querySelectorAll('[data-dil]').forEach(b=>b.onclick=()=>applyDilemma(+b.dataset.dil));
+  $('quickHint').textContent=(S.pending.length||dil||stmtOpen)?'':'Keine offenen Entscheidungen. Gespräche anstoßen unter Sondierungen.';
+  $('endWeek').disabled=!!dil||stmtOpen; $('endWeek').textContent=(dil||stmtOpen)?'Erst entscheiden, dann Woche abschließen':'Woche abschließen';
+  if(inGov) renderGov(); else { $('govPanel').hidden=true; $('actionsPanel').hidden=false; }
+
+  // Themen
+  $('themes').innerHTML=THEMES.map(t=>{ const s=salOf(t.id); const lage=s>=1.3?'in den Schlagzeilen':s<=0.75?'kaum Thema':'normale Aufmerksamkeit'; return `<button class="opt ${S.theme===t.id?'sel':''}" data-t="${t.id}"><span class="t"><span>${t.name}</span><span class="c num">${Math.round(me.comp[t.id]*100)}</span></span><small>Kompetenz von 100 · ${lage} (×${s.toFixed(1).replace('.',',')})</small></button>`; }).join('');
+  $('themes').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.theme=b.dataset.t;renderGame();});
+
+  // Maßnahmen
+  const rest=S.budget-planCost();
+  $('actions').innerHTML=ACTIONS.map(a=>{
+    const needLand=a.land&&S.selLand===null;
+    const dis=a.cost>rest+1e-9||needLand;
+    return `<button class="opt" data-a="${a.id}" ${dis?'disabled':''}><span class="t"><span>${a.name}</span><span class="c num">${a.cost?fmtM(a.cost):'frei'}</span></span>
+      <small>${a.desc}${a.land?(S.selLand!==null?` Ziel: ${LAENDER[S.selLand].n}.`:' Zuerst unten ein Land wählen.'):''}</small></button>`;
+  }).join('');
+  $('actions').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const a=ACTIONS.find(k=>k.id===b.dataset.a);
+    S.plan.push({id:a.id,land:a.land?S.selLand:null}); renderGame();
+  });
+  $('planSummary').innerHTML = S.plan.length
+    ? 'Geplant: <b>'+S.plan.map(x=>ACTIONS.find(k=>k.id===x.id).name+(x.land!==null?` (${LAENDER[x.land].k})`:'')).join('</b>, <b>')+'</b>'
+    : 'Noch nichts geplant. Was nicht ausgegeben wird, bleibt in der Kasse.';
+
+  // Karte
+  const leaders=new Set();
+  const paths=LAENDER.map((l,i)=>{
+    const row=S.sup[i]; const lead=row.map((v,p)=>[v,p]).sort((a,b)=>b[0]-a[0])[0][1]; leaders.add(lead);
+    return `<path d="${MAP[l.n]}" fill="${PARTIES[lead].color}" class="${S.selLand===i?'sel':''}" data-l="${i}" tabindex="0" role="button" aria-label="${l.n}: ${PARTIES[lead].name} vorn mit ${fmtP(row[lead])}"><title>${l.n} · ${PARTIES[lead].name} ${fmtP(row[lead])} · ${me.id} ${fmtP(row[S.player])}</title></path>`;
+  });
+  $('karte').innerHTML=`<svg viewBox="0 0 600 810" xmlns="http://www.w3.org/2000/svg"><g id="mapPaths">${paths.join('')}</g><g id="mapLabels"></g></svg>`;
+  const gl=$('mapLabels');
+  $('karte').querySelectorAll('path').forEach(el=>{
+    const i=+el.dataset.l, b=el.getBBox(); let cx=b.x+b.width/2, cy=b.y+b.height/2;
+    const k=LAENDER[i].k;
+    if(k==='BB'){cy+=28;} if(k==='NI'){cy+=10;} if(k==='HE'){cy+=10;} if(k==='HB'){cy-=4;}
+    const small=['BE','HB','HH','SL'].includes(k);
+    gl.insertAdjacentHTML('beforeend',`<text x="${cx}" y="${cy-(small?-4:2)}" text-anchor="middle">${k}</text>${small?'':`<text class="pct" x="${cx}" y="${cy+14}" text-anchor="middle">${fmtP(S.sup[i][S.player])}</text>`}`);
+    const f=()=>{S.selLand=S.selLand===i?null:i;renderGame();};
+    el.onclick=f; el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f();}};
+  });
+  $('legende').innerHTML=[...leaders].sort((a,b)=>a-b).map(p=>`<span><i style="background:${PARTIES[p].color}"></i>${PARTIES[p].name}</span>`).join('')+`<span style="color:var(--ink-2)">Zahl: Ihr Wert im Land</span>`;
+
+  // Koalitionsbild
+  const inn=nat.map((v,i)=>{ if(v>=5) return true; const g=PARTIES[i].grund; if(!g) return false; const li=LAENDER.findIndex(l=>l.n===g.land); return li>=0&&S.sup[li][i]>=g.min; }), seatsNow=sainteLague(nat.map((v,i)=>inn[i]?v:0),630);
+  $('hrSeats').textContent=PARTIES.map((p,i)=>`${p.id} ${seatsNow[i]}`).join(' · ');
+  $('coalsLive').innerHTML=coalHtml(coalitions(seatsNow,inn),seatsNow,true);
+
+  // Sondierungen
+  const myFar=isFarRight(S.player);
+  $('einladungen').innerHTML=S.pending.map(pi=>`<div class="einladung" data-e="${pi}"><div class="q">${CAND[pi].name} (${PARTIES[pi].name}) lädt zu einem vertraulichen Gespräch ein.</div>
+    <div class="ts">${Math.abs(PARTIES[pi].pos-me.pos)>=2?'Weit weg vom eigenen Lager. Die Basis wird murren, wenn Sie hingehen.':'Ein naheliegender Partner. Absagen kostet Vertrauen.'}</div>
+    <div class="tb"><button class="sm fill" data-acc="${pi}">Annehmen</button><button class="sm" data-dec="${pi}">Absagen</button></div></div>`).join('');
+  $('einladungen').querySelectorAll('[data-acc]').forEach(b=>b.onclick=()=>answerInvite(+b.dataset.acc,true));
+  $('einladungen').querySelectorAll('[data-dec]').forEach(b=>b.onclick=()=>answerInvite(+b.dataset.dec,false));
+  $('talks').innerHTML=(myFar?`<div class="foot">Alle anderen Parteien schließen eine Zusammenarbeit mit der ${me.name} aus. Es wird keine Gespräche geben; Ihr Weg führt nur über eine eigene Mehrheit.</div>`:'')+
+    PARTIES.map((p,pi)=>{
+      if(pi===S.player) return '';
+      const r=Math.round(S.rel[pi]), far=isFarRight(pi)||baseRel(S.player,pi)<=10;
+      const exMe=S.excluded.includes(pi), exBy=S.excludedBy.includes(pi), st=S.statement===pi;
+      const tag=exMe?'<span class="tag no">von Ihnen ausgeschlossen</span>':exBy?'<span class="tag no">schließt Sie aus</span>':st?'<span class="tag ok">Koalitionsaussage</span>':far?'<span class="tag no">kein Partner</span>':r>=45?'<span class="tag ok">Gesprächsbasis</span>':'<span class="tag zu">noch keine Basis</span>';
+      const why=far?(isFarRight(pi)?'Keine demokratische Partei verhandelt mit ihr.':'Programmatisch unvereinbar.'):`${relLabel(r)} · Spektrum ${posLabel(p.pos)}`;
+      const dis=far||exMe||exBy||myFar;
+      return `<div class="talk">${portrait(pi,56)}<div>
+        <div class="tn">${p.name}${tag}</div>
+        <div class="ts">${CAND[pi].name} · ${why}</div>
+        <div class="rel"><span>Verhältnis</span><span class="bar"><i style="width:${r}%;background:${p.color}"></i><b></b></span><b class="num">${r}</b></div>
+        <div class="tb">
+          <button class="sm" data-talk="${pi}" ${dis||S.talksLeft<1?'disabled':''}>Sondierungsgespräch${S.talksLeft<1?' (diese Woche vergeben)':''}</button>
+          <button class="sm" data-stmt="${pi}" ${dis||S.statement!==null||r<45?'disabled':''}>Koalitionsaussage</button>
+          <button class="sm" data-excl="${pi}" ${exMe||far||myFar?'disabled':''}>Ausschließen</button>
+        </div></div></div>`;
+    }).join('');
+  $('talks').querySelectorAll('[data-talk]').forEach(b=>b.onclick=()=>doTalk(+b.dataset.talk));
+  $('talks').querySelectorAll('[data-stmt]').forEach(b=>b.onclick=()=>doStatement(+b.dataset.stmt));
+  $('talks').querySelectorAll('[data-excl]').forEach(b=>b.onclick=()=>doExclude(+b.dataset.excl));
+
+  // Land-Detail
+  const d=$('ldetail');
+  if(S.selLand===null){d.hidden=true;}
+  else{
+    const l=LAENDER[S.selLand],row=S.sup[S.selLand];
+    const o=row.map((v,p)=>[v,p]).sort((a,b)=>b[0]-a[0]);
+    d.hidden=false;
+    d.innerHTML=`<h3>${l.n}<span class="num">${l.w.toFixed(2).replace('.',',')} Mio Wahlberechtigte</span></h3>
+      <div class="poll">${o.map(([v,p])=>`<div class="prow ${p===S.player?'me':''}"><span class="nm">${PARTIES[p].name}</span><span class="bar"><i style="width:${Math.min(100,v*sc)}%;background:${PARTIES[p].color}"></i><b style="left:${5*sc}%"></b></span><span class="v num">${fmtP(v)}</span></div>`).join('')}</div>`;
+  }
+
+  // Tagebuch
+  $('log').innerHTML=S.log.slice(0,30).map(e=>`<div><span class="wk">Woche ${e.w}</span><span class="${e.cls}">${e.text}</span></div>`).join('');
+}
+
+function newDilemma(){
+  const pool=DILEMMAS.map((d,i)=>i).filter(i=>!S.usedDil.includes(i));
+  if(!pool.length){ S.dilemma=null; S.decided=true; return; }
+  S.dilemma=pool[Math.floor(Math.random()*pool.length)]; S.usedDil.push(S.dilemma); S.decided=false;
+}
+function applyDilemma(oi){
+  const me=S.player, d=DILEMMAS[S.dilemma], o=d.o[oi], mp=PARTIES[me].pos;
+  const sal=salOf(d.topic);
+  if(o.lean===0){
+    S.pop[me]-=3; S.backing-=1; S.sup.forEach(r=>r[me]-=0.15*sal);
+    addLog(`Entscheidung: „${o.t}“. Die Kommentatoren nennen es Ausweichen. Zufriedenheit sinkt leicht.`);
+  } else {
+    const agree=o.lean*mp>0 || (Math.abs(mp)<0.5);
+    const camp=o.lean*(mp>=0?1:-1);
+    if(agree){
+      LAENDER.forEach((l,i)=>S.sup[i][me]+=0.7*o.bold*sal*l.th[d.topic]);
+      S.backing=Math.min(100,S.backing+3); S.pop[me]+=1.5*o.bold;
+      addLog(`Entscheidung: „${o.t}“. Passt zum eigenen Lager, die Partei steht hinter Ihnen. Wirkung je nach Nachrichtenlage (×${sal.toFixed(1).replace('.',',')}).`);
+    } else {
+      topLaender(me,5).forEach(i=>S.sup[i][me]-=0.9*o.bold);
+      S.sup.forEach(r=>r[me]+=0.3*o.bold*sal);
+      S.backing-=9*o.bold; S.pop[me]+=1*o.bold;
+      addLog(`Entscheidung: „${o.t}“. Mutig, aber gegen die eigene Linie: Die Basis in den Hochburgen murrt, der Rückhalt in der Partei sinkt auf ${Math.round(S.backing)}.`,'ev');
+    }
+    PARTIES.forEach((p,pi)=>{ if(pi===me||isFarRight(pi)) return; const same=o.lean*p.pos>0; S.rel[pi]=Math.max(0,Math.min(100,S.rel[pi]+(same?4:-4)*o.bold)); });
+  }
+  S.decided=true; renderGame(); autosave();
+}
+// ---------- Legislatur ----------
+const RESSORTS=[
+  {id:'finanzen',name:'Finanzen',th:'wirtschaft'},{id:'inneres',name:'Inneres',th:'migration'},{id:'aussen',name:'Auswärtiges',th:'migration'},
+  {id:'wirtschaft',name:'Wirtschaft und Energie',th:'wirtschaft'},{id:'arbeit',name:'Arbeit und Soziales',th:'soziales'},{id:'klima',name:'Umwelt und Klima',th:'klima'},
+  {id:'verteidigung',name:'Verteidigung',th:'migration'},{id:'gesundheit',name:'Gesundheit und Pflege',th:'soziales'},{id:'verkehr',name:'Verkehr und Wohnen',th:'klima'},
+];
+const LEGISLATUR_WOCHEN=12;
+let VH=null; // Verhandlungszustand
+function openNegotiation(set,seats){
+  const me=S.player;
+  const lead=set.slice().sort((a,b)=>seats[b]-seats[a])[0];
+  const tot=set.reduce((a,i)=>a+seats[i],0);
+  const quota={}; set.forEach(i=>quota[i]=Math.max(1,Math.round(RESSORTS.length*seats[i]/tot)));
+  // Rundung ausgleichen
+  let sum=Object.values(quota).reduce((a,b)=>a+b,0); while(sum>RESSORTS.length){ quota[lead]--; sum--; } while(sum<RESSORTS.length){ quota[lead]++; sum++; }
+  VH={set,seats,lead,tot,quota,mine:[],themes:[]};
+  $('result').hidden=true; $('verhandlung').hidden=false; renderNegotiation(); window.scrollTo(0,0);
+}
+function partnerWish(pi){ // Ressorts, die ein Partner will: nach Kompetenz
+  const p=PARTIES[pi]; return RESSORTS.slice().sort((a,b)=>p.comp[b.th]-p.comp[a.th]).slice(0,VH.quota[pi]).map(r=>r.id);
+}
+function renderNegotiation(){
+  const me=S.player, others=VH.set.filter(i=>i!==me);
+  $('vhHint').textContent=`${VH.set.map(i=>PARTIES[i].name).join(' und ')} kommen auf ${VH.tot} Sitze. Kanzleramt: ${PARTIES[VH.lead].name}. Sie haben Anspruch auf ${VH.quota[me]} Ressort${VH.quota[me]===1?'':'s'}.`;
+  $('vhPartners').innerHTML=VH.set.map(i=>`<div class="vp">${portrait(i,48)}<div><div class="n">${PARTIES[i].name}${i===me?' (Sie)':''}</div><div class="s">${CAND[i].name} · ${VH.seats[i]} Sitze · Verhältnis ${i===me?'–':Math.round(S.rel[i])}</div></div><div class="m num">${VH.quota[i]} Ressorts</div></div>`).join('');
+  const wishes={}; others.forEach(i=>partnerWish(i).forEach(r=>{ (wishes[r]=wishes[r]||[]).push(i); }));
+  $('vhRess').innerHTML=RESSORTS.map(r=>{
+    const mine=VH.mine.includes(r.id), full=!mine&&VH.mine.length>=VH.quota[me];
+    const w=(wishes[r.id]||[]).map(i=>PARTIES[i].id).join(', ');
+    return `<button class="rs ${mine?'mine':''}" data-r="${r.id}" ${full?'disabled':''}><span class="t"><span>${r.name}</span><span class="num">${Math.round(PARTIES[me].comp[r.th]*100)}</span></span><small>${w?'Wunsch von '+w:'Kein Partner besteht darauf'}</small></button>`;
+  }).join('');
+  $('vhRess').querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{ const id=b.dataset.r; VH.mine=VH.mine.includes(id)?VH.mine.filter(x=>x!==id):[...VH.mine,id]; renderNegotiation(); });
+  const conflicts=VH.mine.filter(r=>wishes[r]).length;
+  $('vhStatus').innerHTML=`${VH.mine.length} von ${VH.quota[me]} gewählt. ${conflicts?`<b>${conflicts}</b> davon gegen den Wunsch eines Partners. Das kostet Stabilität.`:'Keine Konflikte.'}`;
+  $('vhThemes').innerHTML=THEMES.map(t=>`<button class="opt ${VH.themes.includes(t.id)?'sel':''}" data-th="${t.id}" ${!VH.themes.includes(t.id)&&VH.themes.length>=3?'disabled':''}><span class="t"><span>${t.name}</span></span><small>${others.filter(i=>PARTIES[i].comp[t.id]>=.7).map(i=>PARTIES[i].id+' erwartet es').join(', ')||'Kein Partner erwartet es'}</small></button>`).join('');
+  $('vhThemes').querySelectorAll('[data-th]').forEach(b=>b.onclick=()=>{ const id=b.dataset.th; VH.themes=VH.themes.includes(id)?VH.themes.filter(x=>x!==id):[...VH.themes,id]; renderNegotiation(); });
+  $('vhSign').disabled=!(VH.mine.length===VH.quota[me]&&VH.themes.length===3);
+}
+$('vhBack').onclick=()=>{ $('verhandlung').hidden=true; $('result').hidden=false; };
+$('vhSign').onclick=()=>{
+  const me=S.player, others=VH.set.filter(i=>i!==me);
+  let stab=55;
+  const wishes={}; others.forEach(i=>partnerWish(i).forEach(r=>{ (wishes[r]=wishes[r]||[]).push(i); }));
+  VH.mine.forEach(r=>{ (wishes[r]||[]).forEach(i=>{ stab-=6; S.rel[i]-=5; }); });
+  others.forEach(i=>{ const core=Object.keys(PARTIES[i].comp).sort((a,b)=>PARTIES[i].comp[b]-PARTIES[i].comp[a])[0]; if(VH.themes.includes(core)){ stab+=6; S.rel[i]+=4; } else { stab-=8; S.rel[i]-=4; } });
+  stab+=others.reduce((a,i)=>a+(S.rel[i]-50)/5,0)/Math.max(1,others.length);
+  // Ressortverteilung: eigene, Rest an Partner nach Wunsch
+  const min={}; VH.mine.forEach(r=>min[r]=me);
+  others.forEach(i=>{ let n=VH.quota[i]; for(const r of partnerWish(i).concat(RESSORTS.map(x=>x.id))){ if(n<=0) break; if(!min[r]){ min[r]=i; n--; } } });
+  S.gov={partners:VH.set.slice(),lead:VH.lead,ministries:min,themes:VH.themes.slice(),stability:Math.round(Math.max(15,Math.min(95,stab))),budget:0,zuf:Math.round(28+Math.random()*10),week:1,laws:[],lawOffer:null,lawDone:false,legis:(S.gov?S.gov.legis:0)+1};
+  S.phase=VH.lead===me?'govern':'junior';
+  S.finished=null; VH=null;
+  addLog(`Koalitionsvertrag unterzeichnet: ${S.gov.partners.map(i=>PARTIES[i].name).join(', ')}. Schwerpunkte: ${S.gov.themes.map(t=>THEMES.find(x=>x.id===t).name).join(', ')}. Stabilität ${S.gov.stability}.`,'ev');
+  startLegislatur();
+};
+function startOpposition(){
+  S.gov={partners:[],lead:null,ministries:{},themes:[],stability:0,zuf:Math.round(25+Math.random()*10),week:1,laws:[],lawOffer:null,lawDone:false,legis:(S.gov?S.gov.legis:0)+1,aiGov:S.finished?S.finished.aiGov:null};
+  S.phase='opposition'; S.finished=null;
+  addLog(`Sie gehen in die Opposition. ${S.gov.aiGov?('Regierung: '+S.gov.aiGov.map(i=>PARTIES[i].name).join(' und ')+'.'):'Keine Regierung kommt zustande.'} Zwölf Wochen, um die Regierung vor sich herzutreiben.`,'ev');
+  startLegislatur();
+}
+function startLegislatur(){
+  S.plan=[]; S.theme=null; S.decided=true; S.dilemma=null; S.talksLeft=1; S.pending=[];
+  newLawOffer();
+  $('verhandlung').hidden=true; $('result').hidden=true; $('game').hidden=false; showView('cockpit'); renderGame(); autosave();
+}
+function newLawOffer(){
+  // drei Vorhaben aus dem Dilemma-Pool, als Gesetze mit Kosten
+  const pool=DILEMMAS.map((d,i)=>i).sort(()=>Math.random()-0.5).slice(0,3);
+  S.gov.lawOffer=pool.map(di=>{ const d=DILEMMAS[di]; const o=d.o.filter(x=>x.lean!==0); const pick=o[Math.floor(Math.random()*o.length)]; return {di,topic:d.topic,t:pick.t,lean:pick.lean,bold:pick.bold,cost:Math.round(2+pick.bold*18)}; });
+  S.gov.lawDone=false;
+}
+function govPartnersAgree(law){
+  const me=S.player; const others=(S.gov.partners||[]).filter(i=>i!==me);
+  return others.map(i=>{ const p=PARTIES[i]; const fits=law.lean*p.pos>=0||Math.abs(p.pos)<0.5; const ok=fits||S.rel[i]>=65||S.gov.themes.includes(law.topic)&&S.rel[i]>=50; return {i,ok}; });
+}
+function passLaw(k){
+  const me=S.player, law=S.gov.lawOffer[k], sal=salOf(law.topic);
+  const votes=govPartnersAgree(law), nay=votes.filter(v=>!v.ok);
+  if(S.phase==='opposition'){
+    // Opposition: Antrag im Bundestag, scheitert, bringt Profil
+    LAENDER.forEach((l,i)=>S.sup[i][me]+=0.5*law.bold*sal*l.th[law.topic]);
+    S.gov.zuf-=1; addLog(`Oppositionsantrag „${law.t}“ wird abgelehnt, bringt aber Profil beim Thema ${THEMES.find(t=>t.id===law.topic).name}.`);
+  } else if(nay.length){
+    S.gov.stability-=10; nay.forEach(v=>S.rel[v.i]-=4);
+    S.gov.zuf-=3; addLog(`Koalitionskrach: ${nay.map(v=>PARTIES[v.i].name).join(' und ')} blockieren „${law.t}“. Das Gesetz kommt nicht, die Regierung wirkt zerstritten.`,'ev');
+    S.pop[me]-=2;
+  } else {
+    S.gov.budget-=law.cost; S.gov.laws.push(law.t);
+    const agree=law.lean*PARTIES[me].pos>0||Math.abs(PARTIES[me].pos)<0.5;
+    LAENDER.forEach((l,i)=>S.sup[i][me]+=(agree?0.6:0.2)*law.bold*sal*l.th[law.topic]);
+    if(!agree){ topLaender(me,5).forEach(i=>S.sup[i][me]-=0.6*law.bold); S.backing-=6*law.bold; }
+    S.gov.zuf+=2+law.bold*3*(sal>1?1.5:1); S.gov.stability=Math.min(100,S.gov.stability+2);
+    // Partner, die mitgezogen haben, profitieren leicht
+    S.gov.partners.filter(i=>i!==me).forEach(i=>S.sup.forEach(r=>r[i]+=0.15));
+    addLog(`Gesetz beschlossen: „${law.t}“ (${law.cost} Mrd €). ${agree?'Die eigene Basis ist zufrieden.':'Gegen die eigene Linie durchgesetzt, der Rückhalt leidet.'}`);
+  }
+  S.gov.lawDone=true; renderGame(); autosave();
+}
+function renderGov(){
+  const me=S.player, g=S.gov, opp=S.phase==='opposition';
+  $('govPanel').hidden=false; $('actionsPanel').hidden=true; $('dilemma').innerHTML='';
+  $('govTitle').textContent=opp?'Oppositionsarbeit':(S.phase==='govern'?'Regierungsarbeit · Kanzleramt':'Regierungsarbeit · Juniorpartner');
+  const bars=[['Zufriedenheit Regierung',g.zuf,false]];
+  if(!opp) bars.push(['Koalitionsstabilität',g.stability,false],['Haushalt (Mrd €)',g.budget,true]);
+  $('govBars').innerHTML=bars.map(([n,v,money])=>`<div class="gb"><span>${n}</span><span class="bar ${v<0?'neg':''}"><i style="width:${Math.min(100,Math.abs(v))}%"></i></span><b class="num">${money?(v>0?'+':'')+Math.round(v):Math.round(v)+' %'}</b></div>`).join('');
+  $('govLawTitle').textContent=opp?'Antrag im Bundestag diese Woche':'Gesetzesvorhaben dieser Woche';
+  if(g.lawDone){ $('govLaws').innerHTML=''; $('govStatus').textContent='Diese Woche ist entschieden. Woche abschließen.'; }
+  else {
+    $('govLaws').innerHTML=g.lawOffer.map((law,k)=>{ const v=govPartnersAgree(law); const nay=v.filter(x=>!x.ok); return `<button class="sm law" data-law="${k}"><span>${law.t}</span><small>${THEMES.find(t=>t.id===law.topic).name} · ${law.cost} Mrd € · ${opp?'Antrag':(nay.length?'Widerstand: '+nay.map(x=>PARTIES[x.i].id).join(', '):'Partner tragen mit')}</small></button>`; }).join('')+`<button class="sm" id="lawSkip">Kein Vorhaben diese Woche</button>`;
+    $('govLaws').querySelectorAll('[data-law]').forEach(b=>b.onclick=()=>passLaw(+b.dataset.law));
+    $('lawSkip').onclick=()=>{ S.gov.lawDone=true; S.gov.zuf-=1.5; addLog('Keine Initiative diese Woche. Die Kommentatoren sprechen von Stillstand.'); renderGame(); autosave(); };
+    $('govStatus').textContent=opp?'Als Opposition bringen Sie Anträge ein. Sie scheitern, schärfen aber Ihr Profil.':'Ein Vorhaben pro Woche. Partner blockieren, was ihrem Lager widerspricht, es sei denn, das Verhältnis ist eng oder das Thema steht im Koalitionsvertrag.';
+  }
+  const stOpen=!!(S.stmt&&S.stmt.t&&!S.stmt.done);
+  $('govEnd').disabled=!g.lawDone||stOpen; $('govEnd').textContent=(g.lawDone&&!stOpen)?`Woche ${g.week} von ${LEGISLATUR_WOCHEN} abschließen`:'Erst entscheiden';
+}
+$('govEnd').onclick=()=>{
+  const me=S.player, g=S.gov, opp=S.phase==='opposition', hot=hotTheme(), sal=salOf(hot);
+  // Nachrichtenlage als Krise: trifft die Regierung, nützt der Opposition mit Kompetenz
+  const govSet=opp?(g.aiGov||[]):g.partners;
+  const crisis=Math.random()<0.55;
+  if(crisis){
+    const strength=0.4*sal;
+    govSet.forEach(i=>S.sup.forEach(r=>r[i]-=strength*0.6));
+    PARTIES.forEach((p,pi)=>{ if(!govSet.includes(pi)) LAENDER.forEach((l,i)=>S.sup[i][pi]+=strength*(p.comp[hot]-0.3)*l.th[hot]); });
+    g.zuf-=2*sal;
+    addLog(`Krise beim Thema ${THEMES.find(t=>t.id===hot).name}: Die Regierung gerät unter Druck, die Opposition profitiert, wo ihr Kompetenz zugetraut wird.`,'ev');
+  }
+  if(!opp){
+    // Haushalt und Stabilität
+    g.budget+=4; // laufender Spielraum
+    if(g.budget<-20){ g.zuf-=3; S.sup.forEach(r=>r[me]-=0.3); addLog('Haushaltsloch: Der Rechnungshof rügt die Neuverschuldung. Das kostet Vertrauen.','ev'); g.budget+=10; }
+    g.stability+= (g.zuf>40?1:-1.5);
+    const others=g.partners.filter(i=>i!==me); others.forEach(i=>{ if(S.rel[i]<35) g.stability-=2; });
+    if(g.stability<20){
+      addLog('Koalitionsbruch: Ein Partner verlässt die Regierung. Es kommt zu Neuwahlen.','ev');
+      S.pop[me]-=6; S.sup.forEach(r=>r[me]-=1.5);
+      return toCampaign();
+    }
+    // Regierungsparteien verlieren, wenn Zufriedenheit niedrig
+    const drift=(35-g.zuf)/100; if(drift>0) g.partners.forEach(i=>S.sup.forEach(r=>r[i]-=drift*0.5));
+    g.zuf=Math.max(5,Math.min(80,g.zuf+(Math.random()-0.5)*3));
+    PARTIES.forEach((p,i)=>{ p.gov=g.partners.includes(i); });
+  } else {
+    // KI-Regierung regiert; Zufriedenheit treibt
+    g.zuf=Math.max(5,Math.min(80,g.zuf+(Math.random()-0.55)*4));
+    const drift=(35-g.zuf)/100; if(drift>0) govSet.forEach(i=>S.sup.forEach(r=>r[i]-=drift*0.5));
+    PARTIES.forEach((p,i)=>{ p.gov=govSet.includes(i); });
+  }
+  S.backing=Math.min(100,S.backing+1); S.pop[me]+= (g.zuf-35)/40;
+  normalize();
+  g.week++;
+  if(g.week>LEGISLATUR_WOCHEN){ addLog('Die Legislatur endet. Der Wahlkampf beginnt, mit der Bilanz, die Sie hinterlassen.','ev'); return toCampaign(); }
+  newLawOffer(); refreshNews(); renderGame(); autosave();
+};
+function toCampaign(){
+  S.phase='campaign'; S.week=1; S.budget=PARTIES[S.player].budget||20; S.plan=[]; S.theme=null; S.talksLeft=1; S.pending=[]; S.excluded=[]; S.excludedBy=[]; S.statement=null; S.usedDil=[]; S.finished=null;
+  const g=S.gov; S.gov=g?{legis:g.legis,history:(g.history||[]).concat([{laws:g.laws,zuf:Math.round(g.zuf)}])}:null;
+  newDilemma(); $('govPanel').hidden=true; $('actionsPanel').hidden=false; renderGame(); autosave();
+}
+function topLaender(pi,n){ return S.sup.map((r,i)=>[r[pi],i]).sort((a,b)=>b[0]-a[0]).slice(0,n).map(x=>x[1]); }
+function doTalk(pi){
+  const me=S.player, nat=national(S.sup);
+  S.talksLeft--;
+  const chance=0.25+S.rel[pi]/100*0.5+nat[me]/150;
+  if(Math.random()<chance){
+    const g=6+Math.random()*5; S.rel[pi]=Math.min(100,S.rel[pi]+g);
+    addLog(`Vertrauliches Gespräch mit ${CAND[pi].name} (${PARTIES[pi].name}). Man versteht sich; das Verhältnis verbessert sich auf ${Math.round(S.rel[pi])}.`);
+  } else {
+    S.rel[pi]=Math.max(0,S.rel[pi]-2);
+    addLog(`${CAND[pi].name} lässt die Anfrage unbeantwortet. Die ${PARTIES[pi].name} sieht derzeit keinen Anlass für Gespräche.`);
+  }
+  renderGame(); autosave();
+}
+function doStatement(pi){
+  const me=S.player;
+  S.statement=pi; S.rel[pi]=Math.min(100,S.rel[pi]+12);
+  PARTIES.forEach((p,k)=>{ if(k!==me&&k!==pi&&!isFarRight(k)) S.rel[k]=Math.max(0,S.rel[k]-6); });
+  const d=Math.abs(PARTIES[pi].pos-PARTIES[me].pos);
+  const eff=d<=1?0.4:d<=2?-0.1:-0.6;
+  S.sup.forEach(r=>r[me]+=eff);
+  addLog(`Koalitionsaussage: ${PARTIES[me].name} will nach der Wahl mit der ${PARTIES[pi].name} regieren. ${eff>0?'Die eigene Basis nimmt es gut auf.':eff<-0.3?'Teile der eigenen Wählerschaft sind irritiert.':'Die Reaktion fällt verhalten aus.'} Andere Parteien reagieren verschnupft.`,'ev');
+  renderGame(); autosave();
+}
+function doExclude(pi){
+  const me=S.player;
+  S.excluded.push(pi); S.rel[pi]=0; if(S.statement===pi) S.statement=null;
+  topLaender(me,3).forEach(i=>S.sup[i][me]+=0.5);
+  addLog(`Sie schließen eine Zusammenarbeit mit der ${PARTIES[pi].name} öffentlich aus. Die eigenen Hochburgen danken es, die Tür ist zu.`,'ev');
+  renderGame(); autosave();
+}
+function answerInvite(pi,yes){
+  const me=S.player;
+  S.pending=S.pending.filter(x=>x!==pi);
+  if(yes){
+    S.rel[pi]=Math.min(100,S.rel[pi]+9);
+    const d=Math.abs(PARTIES[pi].pos-PARTIES[me].pos);
+    if(d>=2){ topLaender(me,3).forEach(i=>S.sup[i][me]-=0.4); addLog(`Sie treffen ${CAND[pi].name}. Das Verhältnis zur ${PARTIES[pi].name} steigt auf ${Math.round(S.rel[pi])}, in den eigenen Hochburgen murrt die Basis.`); }
+    else addLog(`Sie treffen ${CAND[pi].name}. Das Verhältnis zur ${PARTIES[pi].name} steigt auf ${Math.round(S.rel[pi])}.`);
+  } else {
+    S.rel[pi]=Math.max(0,S.rel[pi]-7);
+    addLog(`Sie sagen ${CAND[pi].name} ab. Die ${PARTIES[pi].name} nimmt es übel (${Math.round(S.rel[pi])}).`);
+  }
+  renderGame(); autosave();
+}
+$('undoPlan').onclick=()=>{S.plan=[];renderGame();};
+$('endWeek').onclick=()=>{
+  const me=S.player;
+  S.budget-=planCost();
+  for(const x of S.plan){
+    if(x.id==='rally'){ S.sup[x.land][me]+=1.8*(0.6+S.pop[me]/100); S.pop[me]+=0.4; }
+    if(x.id==='poster') S.sup[x.land][me]+=0.9;
+    if(x.id==='tv') S.sup.forEach(r=>r[me]+=0.5);
+    if(x.id==='door'){ S.sup.map((r,i)=>[r[me],i]).sort((a,b)=>b[0]-a[0]).slice(0,3).forEach(([,i])=>S.sup[i][me]+=1.2); }
+    if(x.id==='fund'){ S.budget+=3; S.sup.forEach(r=>r[me]-=0.3); S.pop[me]-=1.5; }
+  }
+  if(S.plan.length) addLog('Eigene Maßnahmen: '+S.plan.map(x=>ACTIONS.find(k=>k.id===x.id).name+(x.land!==null?` in ${LAENDER[x.land].k}`:'')).join(', ')+'.');
+  if(S.theme){
+    const c=PARTIES[me].comp[S.theme];
+    LAENDER.forEach((l,i)=>{ S.sup[i][me]+=(c-0.5)*1.6*l.th[S.theme]*salOf(S.theme); });
+    addLog(`Schwerpunkt ${THEMES.find(t=>t.id===S.theme).name}. ${c>=.6?'Das Thema zahlt auf Sie ein.':c<=.4?'Hier traut Ihnen kaum jemand etwas zu.':'Gemischte Wirkung.'}`);
+  } else addLog('Kein Schwerpunkt gesetzt. Die anderen bestimmen die Agenda.');
+  PARTIES.forEach((p,pi)=>{
+    if(pi===me) return;
+    const top=S.sup.map((r,i)=>[r[pi],i]).sort((a,b)=>b[0]-a[0]).slice(0,2);
+    top.forEach(([,i])=>S.sup[i][pi]+=0.9+Math.random()*0.6);
+    S.sup.forEach(r=>r[pi]+=(Math.random()-0.5)*0.8);
+  });
+  S.sup.forEach(r=>r[me]+=(Math.random()-0.5)*0.6);
+  // Dynamische Wählerschaft: heiße Themen schieben Stimmen zu den Parteien, denen man sie zutraut
+  if(S.sal){
+    THEMES.forEach(t=>{ const w=salOf(t.id)-1; if(Math.abs(w)<0.05) return;
+      LAENDER.forEach((l,i)=>PARTIES.forEach((p,pi)=>{ S.sup[i][pi]+=(p.comp[t.id]-0.5)*0.45*w*l.th[t.id]; })); });
+    const ht=THEMES.find(t=>t.id===hotTheme());
+    addLog(`Die Nachrichtenlage (${ht.name}) verschiebt Stimmen zu den Parteien, denen das Thema zugetraut wird.`);
+  }
+  const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];
+  if(ev.theme){
+    LAENDER.forEach((l,i)=>PARTIES.forEach((p,pi)=>{ S.sup[i][pi]+=(p.comp[ev.theme]-0.5)*ev.k*l.th[ev.theme]*salOf(ev.theme); }));
+    addLog(ev.t,'ev');
+  } else if(ev.hit){
+    const pi=Math.floor(Math.random()*PARTIES.length);
+    S.sup.forEach(r=>r[pi]+=ev.hit); S.pop[pi]+=ev.hit*2.5;
+    addLog(ev.t.replace('{p}',PARTIES[pi].name),'ev');
+  } else addLog(ev.t,'ev');
+  S.pending.forEach(pi=>{ S.rel[pi]=Math.max(0,S.rel[pi]-4); addLog(`Die Einladung der ${PARTIES[pi].name} blieb unbeantwortet. Das kommt nicht gut an.`); });
+  S.pending=[];
+  const natNow=national(S.sup);
+  if(!isFarRight(me)){
+    const cands=PARTIES.map((p,pi)=>pi).filter(pi=>pi!==me&&!isFarRight(pi)&&baseRel(me,pi)>10&&!S.excluded.includes(pi)&&!S.excludedBy.includes(pi));
+    cands.sort(()=>Math.random()-0.5);
+    for(const pi of cands){
+      const together=natNow[pi]+natNow[me];
+      const prob=0.08+(S.rel[pi]-20)/250+(together>35?0.15:0)+(natNow[me]>natNow[pi]?0.08:0);
+      if(S.rel[pi]>=22&&Math.random()<prob){ S.pending.push(pi); addLog(`${CAND[pi].name} (${PARTIES[pi].name}) bittet um ein vertrauliches Gespräch.`,'ev'); break; }
+    }
+    PARTIES.forEach((p,pi)=>{
+      if(pi===me||isFarRight(pi)||S.excludedBy.includes(pi)) return;
+      if(S.rel[pi]<12&&Math.abs(p.pos-PARTIES[me].pos)>=2&&Math.random()<0.25){ S.excludedBy.push(pi); addLog(`Die ${PARTIES[pi].name} schließt eine Koalition mit der ${PARTIES[me].name} aus.`,'ev'); }
+    });
+  }
+  S.talksLeft=1;
+  // Regieren ist schwer: Koalitionsstreit trifft beide Regierungsparteien
+  if(Math.random()<0.45){
+    const govs=PARTIES.map((p,i)=>p.gov?i:-1).filter(i=>i>=0);
+    govs.forEach(i=>{ S.sup.forEach(r=>r[i]-=0.35); S.pop[i]-=1.5; });
+    addLog('Koalitionsstreit in Berlin: Die Regierungsparteien verlieren, die Opposition schaut zu.','ev');
+  }
+  // Rückhalt in der Partei
+  if(S.backing<25&&Math.random()<0.5){
+    S.sup.forEach(r=>r[me]-=1.2); S.pop[me]-=5; S.backing+=15;
+    addLog('Aufstand der Landesverbände: Mehrere Landesvorsitzende fordern öffentlich einen Kurswechsel. Die Partei wirkt zerstritten.','ev');
+  } else S.backing=Math.min(100,S.backing+1.5);
+  newDilemma();
+  normalize();
+  S.pop=S.pop.map((v,i)=>Math.max(8,Math.min(85,v+(Math.random()-0.5)*(i===me&&PERSON.job==='quereinsteiger'?6:2))));
+  S.plan=[]; S.theme=null;
+  if(S.week>=8){ election(); return; }
+  S.week++; autosave();
+  showView('cockpit'); renderGame(); refreshNews();
+};
+
+// ---------- Wahl ----------
+function sainteLague(votes,seats){
+  const res=votes.map(()=>0);
+  for(let s=0;s<seats;s++){
+    let best=-1,bv=-1;
+    votes.forEach((v,i)=>{const q=v/(2*res[i]+1); if(q>bv){bv=q;best=i;}});
+    res[best]++;
+  }
+  return res;
+}
+function election(){
+  const nat=national(S.sup);
+  const final=nat.map(v=>Math.max(0.5,v+(Math.random()-0.5)*1.2));
+  S.finished={final}; autosave();
+  electionShow(S.finished);
+}
+function electionShow(res){
+  const final=res.final;
+  const me=S.player;
+  const inn=final.map((v,i)=>{ if(v>=5) return true; const g=PARTIES[i].grund; if(!g) return false; const li=LAENDER.findIndex(l=>l.n===g.land); return li>=0&&S.sup[li][i]>=g.min; });
+  const seats=sainteLague(final.map((v,i)=>inn[i]?v:0),630);
+  const grundNote=PARTIES.map((p,i)=>(final[i]<5&&inn[i])?`${p.name} zieht über die Grundmandatsklausel ein (mindestens drei Direktmandate).`:'').filter(Boolean).join(' ');
+  $('game').hidden=true; $('result').hidden=false;
+
+  const order=final.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]);
+  $('seats').innerHTML=order.map(([v,i],k)=>`<div class="seat"><span class="i num">${k+1}</span>
+    <span class="nm"><span class="sw" style="background:${PARTIES[i].color}"></span>${PARTIES[i].name}${i===me?' <span>(Sie)</span>':''}</span>
+    <span class="pct num">${fmtP(v)}</span>
+    <span class="st num ${inn[i]?'':'out'}">${inn[i]?seats[i]+' Sitze'+(v<5?' (Grundmandate)':''):'unter 5 %'}</span></div>`).join('')+(grundNote?`<p class="foot">${grundNote}</p>`:'');
+  drawHemi(seats,order.map(x=>x[1]));
+
+  const combos=coalitions(seats,inn);
+  $('coalitions').innerHTML=coalHtml(combos,seats,false);
+
+  const viable=combos.filter(c=>c.ok);
+  const myBest=viable.find(c=>c.set.includes(me));
+  let v,cls;
+  if(!inn[me]){v='Draußen. Ihre Partei scheitert an der Fünf-Prozent-Hürde.';cls='bad';}
+  else if(seats[me]>=316){v='Absolute Mehrheit. Das gab es zuletzt 1957.';cls='good';}
+  else if(myBest){
+    const lead=myBest.set.slice().sort((a,b)=>seats[b]-seats[a])[0];
+    v = lead===me ? `Sie stellen die Kanzlerin oder den Kanzler. ${myBest.set.map(i=>PARTIES[i].id).join(' und ')} kommen auf ${myBest.tot} Sitze.`
+                  : `Juniorpartner unter der ${PARTIES[lead].name}. Regierung ja, Kanzleramt nein.`;
+    cls = lead===me?'good':'mid';
+  } else {v=`${fmtP(final[me])} und ${seats[me]} Sitze, aber kein Bündnis mit Ihnen kommt zustande. Opposition.`;cls='bad';}
+  $('verdict').textContent=v; $('verdict').className='verdict '+cls;
+  // Kanzlerin oder Kanzler
+  let chan=null;
+  if(seats[me]>=316) chan=me; else if(viable.length) chan=viable[0].set.slice().sort((a,b)=>seats[b]-seats[a])[0];
+  if(myBest){ chan=myBest.set.slice().sort((a,b)=>seats[b]-seats[a])[0]; }
+  if(chan!==null){
+    const zf=Math.round(S.pop[chan]);
+    $('winner').hidden=false;
+    $('winner').innerHTML=`${portrait(chan,96)}<div><div class="kn">${CAND[chan].name}</div><div class="kr">Kanzleramt · ${PARTIES[chan].name}</div>
+      <div class="zf"><span>Zufrieden</span><span class="bar"><i style="width:${zf}%"></i></span><b class="num">${zf} %</b></div>
+      ${zf<35?'<div class="stamp">Unbeliebt vereidigt</div>':''}
+      <div class="zq">${zf<35?'Startet mit dem schlechtesten Wert, den je eine Regierungschefin oder ein Regierungschef zu Amtsbeginn hatte.':zf<50?'Gewählt, aber ohne Rückenwind.':'Startet mit echtem Vertrauensvorschuss.'}</div></div>`;
+  } else $('winner').hidden=true;
+  $('gallery').innerHTML=order.map(([v,i])=>`<figure>${portrait(i,96)}<figcaption>${CAND[i].name}<span>${PARTIES[i].name} · ${Math.round(S.pop[i])} % zufrieden</span></figcaption></figure>`).join('');
+  // Wie geht es weiter
+  const myCoals=viable.filter(c=>c.set.includes(me));
+  const aiGov=viable.filter(c=>!c.set.includes(me))[0];
+  res.aiGov=aiGov?aiGov.set:null;
+  const acts=[];
+  if(!inn[me]){ $('nextHint').textContent='Ohne Mandate gibt es keine Fraktion. Sie können die Legislatur von außen begleiten und beim nächsten Mal wiederkommen.'; }
+  else if(seats[me]>=316){ $('nextHint').textContent='Sie regieren allein. Keine Verhandlungen nötig.'; }
+  else if(myCoals.length){ $('nextHint').textContent='Diese Bündnisse stehen Ihnen offen. In den Verhandlungen geht es um Ressorts und den Koalitionsvertrag.'; }
+  else { $('nextHint').textContent='Kein Bündnis mit Ihnen kommt zustande. Opposition heißt: Anträge stellen, die Regierung treiben, Profil schärfen.'; }
+  if(inn[me]&&seats[me]>=316) acts.push(`<button class="btn" data-next="alone">Regierung bilden</button>`);
+  myCoals.forEach((c,k)=>acts.push(`<button class="btn" data-next="c${k}">Verhandeln: ${c.set.map(i=>PARTIES[i].id).join(' + ')}</button>`));
+  acts.push(`<button class="btn ${myCoals.length?'ghost':''}" data-next="opp">${inn[me]?'In die Opposition gehen':'Legislatur von außen begleiten'}</button>`);
+  $('nextActions').innerHTML=acts.join('');
+  $('nextActions').querySelectorAll('[data-next]').forEach(b=>b.onclick=()=>{
+    const v=b.dataset.next;
+    if(v==='alone'){ VH={set:[me],seats,lead:me,tot:seats[me],quota:{[me]:RESSORTS.length},mine:RESSORTS.map(r=>r.id),themes:[]}; $('result').hidden=true; $('verhandlung').hidden=false; renderNegotiation(); }
+    else if(v==='opp') startOpposition();
+    else openNegotiation(myCoals[+v.slice(1)].set,seats);
+  });
+}
+function drawHemi(seats,order){
+  const cv=$('hemi'),ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const cx=360,cy=370,rows=9,rIn=120,rOut=340;
+  const pts=[];
+  for(let r=0;r<rows;r++){
+    const rad=rIn+(rOut-rIn)*r/(rows-1);
+    const cnt=Math.round(630*rad/(rows*(rIn+rOut)/2));
+    for(let k=0;k<cnt;k++){const a=Math.PI*(k+0.5)/cnt; pts.push({x:cx-rad*Math.cos(a),y:cy-rad*Math.sin(a),a});}
+  }
+  pts.sort((p,q)=>p.a-q.a);
+  const take=pts.slice(0,630);
+  const byPos=order.slice().sort((a,b)=>PARTIES[a].pos-PARTIES[b].pos);
+  let idx=0;
+  for(const p of byPos){
+    for(let s=0;s<seats[p]&&idx<take.length;s++,idx++){
+      ctx.fillStyle=PARTIES[p].color; ctx.beginPath(); ctx.arc(take[idx].x,take[idx].y,9,0,Math.PI*2); ctx.fill();
+    }
+  }
+  const ink=getComputedStyle(document.documentElement).getPropertyValue('--ink').trim()||'#000';
+  ctx.fillStyle=ink; ctx.font='900 46px Archivo, sans-serif'; ctx.textAlign='center';
+  ctx.fillText('630',cx,cy-22);
+  ctx.font='500 15px "Archivo Narrow", sans-serif'; ctx.fillText('Mehrheit ab 316',cx,cy+2);
+}
+
+$('restart').onclick=async()=>{ if(USER){ try{ await STORE.clear(USER); }catch(e){} } S=null;resetData();$('result').hidden=true;$('verhandlung').hidden=true;$('setup').hidden=false;showStep(1);};
+
+const boot=async(data)=>{
+  updFound();
+  await pickStore();
+  const u=await STORE.session();
+  if(u){ await afterLogin(u); }
+  else { $('auth').hidden=false; }
+};
+window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data);
+</script>
+
+</body>
+</html>

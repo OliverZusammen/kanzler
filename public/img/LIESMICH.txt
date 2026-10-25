@@ -1,0 +1,13 @@
+Kandidatenfotos (Platzhalter, keine realen Politiker)
+=====================================================
+
+Zuordnung in index.html (CAND, Feld img):
+  kandidat-1.jpg  Bürgerunion     Dr. Rainer Hollbeck
+  kandidat-5.jpg  Heimatpartei    Bernd Krauthausen
+  kandidat-2.jpg  Soziale Allianz Katrin Senftleben
+  kandidat-3.jpg  Zukunftsgrün    Jonas Wiedemann
+  kandidat-6.jpg  Linke Liste     Marit Ostrowski
+  (kein Foto)     Neues Bündnis   Dr. Helga Brandner  -> Silhouette; Datei ergänzen und in CAND eintragen
+  kandidat-4.jpg  Freie Reformer  Luisa Falkenrath
+
+Hochformat 4:5, mindestens 400 x 500 Pixel, JPG. Das Spiel zeigt sie in Schwarz-Weiß.

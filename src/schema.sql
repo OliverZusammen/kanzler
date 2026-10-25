@@ -1,0 +1,29 @@
+-- Kanzlerrennen, MySQL/MariaDB. Wird von api.php beim ersten Aufruf automatisch angelegt;
+-- hier zur Dokumentation und für manuelles Anlegen.
+CREATE TABLE IF NOT EXISTS users (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(30) NOT NULL UNIQUE,
+  hash VARCHAR(255) NOT NULL,
+  created INT UNSIGNED NOT NULL,
+  last_login INT UNSIGNED NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS sessions (
+  token CHAR(48) NOT NULL PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  created INT UNSIGNED NOT NULL,
+  INDEX (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS saves (
+  user_id INT UNSIGNED NOT NULL PRIMARY KEY,
+  blob MEDIUMTEXT NOT NULL,
+  at BIGINT UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS registrations (
+  ip VARCHAR(45) NOT NULL,
+  day CHAR(10) NOT NULL,
+  n INT UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY (ip, day)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
