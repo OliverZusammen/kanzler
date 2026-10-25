@@ -33,8 +33,16 @@ dann mit Konto und Spielstand nur im Browser.
    ```
 5. Quick Deploy an, Zero downtime aus, Deploy now. Beim ersten Deploy legt das Skript
    `/home/ploi/kanzler-config/config.php` aus der Vorlage an.
-6. Ploi → Databases: Datenbank `kanzler` mit Benutzer `kanzler` anlegen. Zugang per SSH in
-   `/home/ploi/kanzler-config/config.php` eintragen, dann noch einmal deployen (kopiert die Config).
+6. Ploi → Databases: Datenbank `kanzler` mit Benutzer `kanzler` anlegen. Zugang **ohne SSH** eintragen:
+   Site → Manage → Environment, diese Zeilen einfügen und speichern:
+   ```
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_DATABASE=kanzler
+   DB_USERNAME=kanzler
+   DB_PASSWORD=das-generierte-passwort
+   ```
+   Die `.env` hat Vorrang vor `/home/ploi/kanzler-config/config.php`; letztere bleibt als Alternative für SSH-Nutzer.
 7. nginx: Vorlage aus `deploy/nginx-kanzler.conf` einsetzen, Test configuration, nginx Reload.
 8. SSL: Let's Encrypt.
 9. Prüfen: `https://kanzler.stache-advisory.online/api.php?ping=1` muss `{"ok":true,...}` liefern;

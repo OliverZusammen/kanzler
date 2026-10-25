@@ -2,7 +2,31 @@
 // Gemeinsame Funktionen für api.php. Liegt außerhalb von public/.
 date_default_timezone_set('Europe/Berlin');
 
+function kr_env(): array {
+  // Ploi: Site → Manage → Environment schreibt /home/ploi/<domain>/.env (Laravel-Schreibweise)
+  $f = dirname(__DIR__).'/.env'; $out = [];
+  if (!is_file($f)) return $out;
+  foreach (file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+    $line = trim($line); if ($line === '' || $line[0] === '#' || strpos($line, '=') === false) continue;
+    [$k, $v] = explode('=', $line, 2); $v = trim($v);
+    if (strlen($v) >= 2 && (($v[0] === '"' && substr($v, -1) === '"') || ($v[0] === "'" && substr($v, -1) === "'"))) $v = substr($v, 1, -1);
+    $out[trim($k)] = $v;
+  }
+  return $out;
+}
+
 function kr_config(): array {
+  $env = kr_env();
+  if (!empty($env['DB_DATABASE']) && !empty($env['DB_USERNAME'])) {
+    // Zugang aus der .env (Ploi-Environment) hat Vorrang; kein SSH nötig
+    return [
+      'db_driver' => $env['DB_CONNECTION'] ?? 'mysql', 'db_host' => $env['DB_HOST'] ?? '127.0.0.1', 'db_name' => $env['DB_DATABASE'],
+      'db_user' => $env['DB_USERNAME'], 'db_pass' => $env['DB_PASSWORD'] ?? '',
+      'sqlite_path' => '/home/ploi/kanzler-data/kanzler.sqlite', 'data_dir' => $env['DATA_DIR'] ?? '/home/ploi/kanzler-data',
+      'news_url' => $env['NEWS_URL'] ?? 'https://www.tagesschau.de/api2u/news/?ressort=inland', 'news_cache' => (int)($env['NEWS_CACHE'] ?? 900),
+      'anthropic_key' => $env['ANTHROPIC_API_KEY'] ?? '', 'register_per_day' => (int)($env['REGISTER_PER_DAY'] ?? 20),
+    ];
+  }
   $f = __DIR__.'/config.php';
   if (!is_file($f)) {
     // Lokaler Notbetrieb ohne Config: SQLite neben dem Projekt
