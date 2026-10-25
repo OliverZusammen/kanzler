@@ -43,7 +43,7 @@ function kr_db(array $cfg): PDO {
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $db->exec('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL, hash TEXT NOT NULL, created INTEGER NOT NULL, last_login INTEGER)');
     $db->exec('CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, user_id INTEGER NOT NULL, created INTEGER NOT NULL)');
-    $db->exec('CREATE TABLE IF NOT EXISTS saves (user_id INTEGER PRIMARY KEY, blob TEXT NOT NULL, at INTEGER NOT NULL)');
+    $db->exec('CREATE TABLE IF NOT EXISTS saves (user_id INTEGER PRIMARY KEY, payload TEXT NOT NULL, saved_at INTEGER NOT NULL)');
     $db->exec('CREATE TABLE IF NOT EXISTS registrations (ip TEXT NOT NULL, day TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (ip, day))');
     return $db;
   }
@@ -57,9 +57,9 @@ function kr_db(array $cfg): PDO {
 
 function kr_upsert_save(PDO $db, array $cfg, int $uid, string $blob): void {
   if (($cfg['db_driver'] ?? 'mysql') === 'sqlite') {
-    $db->prepare('INSERT INTO saves (user_id,blob,at) VALUES (?,?,?) ON CONFLICT(user_id) DO UPDATE SET blob=excluded.blob, at=excluded.at')->execute([$uid,$blob,(int)(microtime(true)*1000)]);
+    $db->prepare('INSERT INTO saves (user_id,payload,saved_at) VALUES (?,?,?) ON CONFLICT(user_id) DO UPDATE SET payload=excluded.payload, saved_at=excluded.saved_at')->execute([$uid,$blob,(int)(microtime(true)*1000)]);
   } else {
-    $db->prepare('INSERT INTO saves (user_id,blob,at) VALUES (?,?,?) ON DUPLICATE KEY UPDATE blob=VALUES(blob), at=VALUES(at)')->execute([$uid,$blob,(int)(microtime(true)*1000)]);
+    $db->prepare('INSERT INTO saves (user_id,payload,saved_at) VALUES (?,?,?) ON DUPLICATE KEY UPDATE payload=VALUES(payload), saved_at=VALUES(saved_at)')->execute([$uid,$blob,(int)(microtime(true)*1000)]);
   }
 }
 

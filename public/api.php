@@ -80,8 +80,8 @@ switch ($action) {
 
   case 'load':
     $me = userFromToken($db, (string)($in['token'] ?? '')); if (!$me) $fail('Nicht angemeldet.', 401);
-    $q = $db->prepare('SELECT blob, at FROM saves WHERE user_id=?'); $q->execute([(int)$me['id']]); $row = $q->fetch(PDO::FETCH_ASSOC);
-    echo json_encode(['ok'=>true,'save'=>$row ? ['blob'=>json_decode($row['blob'], true),'at'=>(int)$row['at']] : null]); break;
+    $q = $db->prepare('SELECT payload, saved_at FROM saves WHERE user_id=?'); $q->execute([(int)$me['id']]); $row = $q->fetch(PDO::FETCH_ASSOC);
+    echo json_encode(['ok'=>true,'save'=>$row ? ['blob'=>json_decode($row['payload'], true),'at'=>(int)$row['saved_at']] : null]); break;
 
   case 'clear':
     $me = userFromToken($db, (string)($in['token'] ?? '')); if (!$me) $fail('Nicht angemeldet.', 401);
