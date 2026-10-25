@@ -694,8 +694,12 @@ const EVENT_TYPES={
   streik:{name:'Arbeitskampf',kw:['streik','warnstreik','tarif','aussperrung','stellenabbau','werksschließung','massenentlassung','insolvenz']},
   krieg:{name:'Außenpolitik',kw:['krieg','waffen','nato','ukraine','russland','israel','gaza','iran','china','taiwan','sanktion','zölle','trump','gipfel']},
 };
+// Meldungen über reale Parteien und Spitzenpolitiker bleiben Nachrichtenlage, werden aber nicht zum Stellungnahme-Anlass (fiktive Parteien im Spiel)
+const REAL_POLITICS=/\b(afd|cdu|csu|spd|grüne|grünen|linke|linken|bsw|fdp|union|koalition|kanzler|minister|bundestag|fraktion|parteitag|wagenknecht|merz|klingbeil|söder|weidel|habeck|dobrindt|reiche|bas|pistorius)\b/i;
 function eventType(title){
+  if(REAL_POLITICS.test(title)) return null;
   const t=' '+title.toLowerCase().replace(/[^a-zäöüß0-9]+/g,' ')+' ';
+  if(/hacker|cyber|datenleck|it angriff/.test(t)) return 'skandal';
   for(const k of Object.keys(EVENT_TYPES)) if(EVENT_TYPES[k].kw.some(w=>t.includes(' '+w)||t.includes(w+' '))) return k;
   return null;
 }
